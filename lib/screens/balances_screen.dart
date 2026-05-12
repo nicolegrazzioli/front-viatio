@@ -12,6 +12,7 @@ import '../core/dao/wallet_dao.dart';
 import '../core/dao/currency_transaction_dao.dart';
 import '../core/dao/userDAO.dart';
 import '../core/models/user.dart';
+import '../core/authentication/auth_service.dart';
 
 class BalancesScreen extends StatefulWidget {
   const BalancesScreen({super.key});
@@ -28,6 +29,40 @@ class _BalancesScreenState extends State<BalancesScreen> {
   bool _isLoading = true;
   final ScrollController _scrollController = ScrollController();
 
+  String _searchQuery = '';
+  String _sortOption = 'Recentes (Padrão)';
+  String? _filterCurrency;
+  String? _filterSource;
+
+  List<CurrencyTransaction> get _filteredAndSortedTransactions {
+    if (_transactions == null) return [];
+    var list = _transactions!.where((t) {
+      final q = _searchQuery.toLowerCase();
+      final matchesQuery = t.currency.toLowerCase().contains(q) ||
+                           t.source.toLowerCase().contains(q) ||
+                           t.date.contains(q);
+      
+      final matchesCurrency = _filterCurrency == null || t.currency == _filterCurrency;
+      final matchesSource = _filterSource == null || t.source == _filterSource;
+      
+      return matchesQuery && matchesCurrency && matchesSource;
+    }).toList();
+    
+    list.sort((a, b) {
+      if (_sortOption == 'Recentes (Padrão)') {
+        return b.id!.compareTo(a.id!); 
+      } else if (_sortOption == 'Antigos') {
+        return a.id!.compareTo(b.id!);
+      } else if (_sortOption == 'Maior Valor') {
+        return b.amountBrl.compareTo(a.amountBrl);
+      } else if (_sortOption == 'Menor Valor') {
+        return a.amountBrl.compareTo(b.amountBrl);
+      }
+      return 0;
+    });
+    return list;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -35,7 +70,17 @@ class _BalancesScreenState extends State<BalancesScreen> {
   }
 
   Future<void> _loadData() async {
-    final user = await UserDAO().getUser('nicole@exemplo.com', '123');
+    User? user = AuthService.currentUser;
+    if (user == null) {
+      user = await UserDAO().getUser('nicole@exemplo.com', '123');
+      if (user == null) {
+        final newUser = User(name: "Nicole Grazzioli", email: "nicole@exemplo.com", password: "123");
+        await UserDAO().insertUser(newUser);
+        user = await UserDAO().getUser('nicole@exemplo.com', '123');
+      }
+      AuthService.currentUser = user;
+    }
+    
     if (user != null) {
       final wallets = await WalletDAO().getWalletsByUser(user.id!);
       final transactions = await CurrencyTransactionDAO().getTransactionsByUser(user.id!);
@@ -74,6 +119,118 @@ class _BalancesScreenState extends State<BalancesScreen> {
       target.clamp(0, _scrollController.position.maxScrollExtent),
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
+    );
+  }
+
+  void _showSortModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.cardBackground,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        final options = ['Recentes (Padrão)', 'Antigos', 'Maior Valor', 'Menor Valor'];
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text("Ordenar compras por", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+              ...options.map((option) => ListTile(
+                title: Text(option, style: const TextStyle(color: Colors.white)),
+                trailing: _sortOption == option ? const Icon(Icons.check, color: AppColors.moneyGreen) : null,
+                onTap: () {
+                  setState(() => _sortOption = option);
+                  Navigator.pop(context);
+                },
+              )),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFilterModal() {
+    final currencies = _wallets?.map((w) => w.currency).toList() ?? [];
+    final sources = _transactions?.map((t) => t.source).toSet().toList() ?? [];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.cardBackground,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return SafeArea(
+          child: DefaultTabController(
+            length: 2,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const TabBar(
+                  tabs: [
+                    Tab(text: "Moeda"),
+                    Tab(text: "Origem"),
+                  ],
+                  labelColor: AppColors.moneyGreen,
+                  unselectedLabelColor: Colors.white,
+                  indicatorColor: AppColors.moneyGreen,
+                ),
+                SizedBox(
+                  height: 300,
+                  child: TabBarView(
+                    children: [
+                      // Moeda
+                      ListView(
+                        children: [
+                          ListTile(
+                            title: const Text("Todas as moedas", style: TextStyle(color: Colors.white)),
+                            trailing: _filterCurrency == null ? const Icon(Icons.check, color: AppColors.moneyGreen) : null,
+                            onTap: () {
+                              setState(() => _filterCurrency = null);
+                              Navigator.pop(context);
+                            },
+                          ),
+                          ...currencies.map((c) => ListTile(
+                            title: Text(c, style: const TextStyle(color: Colors.white)),
+                            trailing: _filterCurrency == c ? const Icon(Icons.check, color: AppColors.moneyGreen) : null,
+                            onTap: () {
+                              setState(() => _filterCurrency = c);
+                              Navigator.pop(context);
+                            },
+                          )),
+                        ],
+                      ),
+                      // Origem
+                      ListView(
+                        children: [
+                          ListTile(
+                            title: const Text("Todas as origens", style: TextStyle(color: Colors.white)),
+                            trailing: _filterSource == null ? const Icon(Icons.check, color: AppColors.moneyGreen) : null,
+                            onTap: () {
+                              setState(() => _filterSource = null);
+                              Navigator.pop(context);
+                            },
+                          ),
+                          ...sources.map((s) => ListTile(
+                            title: Text(s, style: const TextStyle(color: Colors.white)),
+                            trailing: _filterSource == s ? const Icon(Icons.check, color: AppColors.moneyGreen) : null,
+                            onTap: () {
+                              setState(() => _filterSource = s);
+                              Navigator.pop(context);
+                            },
+                          )),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -151,7 +308,6 @@ class _BalancesScreenState extends State<BalancesScreen> {
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancelar", style: TextStyle(color: Colors.white))),
               TextButton(
                 onPressed: () async {
-                  // TODO: Lógica de excluir a transaction e re-calcular o Wallet
                   await CurrencyTransactionDAO().deleteTransaction(transaction.id!);
                   
                   // Atualizar o wallet (recalcular saldo)
@@ -357,9 +513,15 @@ class _BalancesScreenState extends State<BalancesScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: SearchFilterBar(
-                onFilterTap: () {},
-                onSortTap: () {},
-                onSearchChanged: (value) {},
+                isFilterActive: _filterCurrency != null || _filterSource != null,
+                isSortActive: _sortOption != 'Recentes (Padrão)',
+                onFilterTap: _showFilterModal,
+                onSortTap: _showSortModal,
+                onSearchChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
               ),
             ),
             
@@ -367,19 +529,19 @@ class _BalancesScreenState extends State<BalancesScreen> {
             
             // Lista de Compras de Moeda
             Expanded(
-              child: _transactions == null || _transactions!.isEmpty
-                ? const Center(child: Text("Nenhuma compra recente.", style: TextStyle(color: Colors.white54)))
+              child: _filteredAndSortedTransactions.isEmpty
+                ? const Center(child: Text("Nenhuma compra encontrada.", style: TextStyle(color: Colors.white54)))
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    itemCount: _transactions!.length,
+                    itemCount: _filteredAndSortedTransactions.length,
                     itemBuilder: (context, index) {
-                      final transaction = _transactions![index];
+                      final transaction = _filteredAndSortedTransactions[index];
                       final color = _getCurrencyColor(transaction.currency);
                       
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (index == 0 || _transactions![index].date != _transactions![index-1].date)
+                          if (index == 0 || _filteredAndSortedTransactions[index].date != _filteredAndSortedTransactions[index-1].date)
                             Padding(
                               padding: const EdgeInsets.only(top: 24, bottom: 8),
                               child: Text(
@@ -389,7 +551,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
                             ),
                           _buildPurchaseItem(transaction, color),
                           const Divider(color: AppColors.silverBorder, height: 1),
-                          if (index == _transactions!.length - 1)
+                          if (index == _filteredAndSortedTransactions.length - 1)
                             const SizedBox(height: 80),
                         ],
                       );

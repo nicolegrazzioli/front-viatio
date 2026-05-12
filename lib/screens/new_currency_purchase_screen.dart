@@ -221,10 +221,32 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                     TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancelar", style: TextStyle(color: Colors.white))),
                     TextButton(
                       onPressed: () async {
-                        // TODO: Implement delete logic similar to balances_screen dismissible if needed here
-                        // For now, simpler to just let the user delete from the list in balances_screen
-                        Navigator.pop(ctx);
-                        Navigator.pop(context);
+                        final transaction = widget.transaction!;
+                        await CurrencyTransactionDAO().deleteTransaction(transaction.id!);
+                        
+                        final walletDao = WalletDAO();
+                        final wallet = await walletDao.getWallet(transaction.userId, transaction.currency);
+                        if (wallet != null) {
+                          final newBalance = wallet.balance - transaction.amount;
+                          if (newBalance <= 0) {
+                            await walletDao.deleteWallet(transaction.userId, transaction.currency);
+                          } else {
+                            double totalBrlAntigo = wallet.balance * wallet.averageVet;
+                            double novoTotalBrl = totalBrlAntigo - transaction.amountBrl;
+                            double newVet = novoTotalBrl / newBalance;
+
+                            await walletDao.updateWallet(Wallet(
+                              userId: transaction.userId,
+                              currency: transaction.currency,
+                              balance: newBalance,
+                              averageVet: newVet,
+                            ));
+                          }
+                        }
+                        if (mounted) {
+                          Navigator.pop(ctx);
+                          Navigator.pop(context);
+                        }
                       },
                       child: const Text("Excluir", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                     ),
@@ -383,30 +405,6 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
             ),
             const SizedBox(height: 24),
             
-            // Upload de foto (opcional)
-            GestureDetector(
-              onTap: () {
-                // TODO: Implementar lógica de abrir galeria/câmera
-              },
-              child: Container(
-                height: 100,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B), // Cor ligeiramente mais clara que o fundo escuro
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: AppColors.silverBorder, style: BorderStyle.solid),
-                ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_photo_alternate_outlined, color: Colors.white70, size: 32),
-                    SizedBox(height: 8),
-                    Text("Anexar comprovante (opcional)", style: TextStyle(color: Colors.white70, fontSize: 14)),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
             // Descrição
             _buildTextField(
               hint: "Descrição (opcional)", 

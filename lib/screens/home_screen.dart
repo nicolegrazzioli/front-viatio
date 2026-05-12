@@ -13,6 +13,7 @@ import '../core/dao/trip_dao.dart';
 import '../core/dao/userDAO.dart';
 import '../core/dao/expense_dao.dart';
 import '../core/dao/wallet_dao.dart';
+import '../core/authentication/auth_service.dart';
 
 // --- MOCK API E MODELOS ---
 // Estes modelos representam as informações que virão do seu back-end em Java futuramente via JSON.
@@ -83,6 +84,33 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<int, double> _tripAmounts = {};
   double _totalBalanceBrl = 0.0;
   bool _isLoading = true;
+  
+  String _searchQuery = '';
+  String _sortOption = 'Recentes (Padrão)';
+
+  List<Trip> get _filteredAndSortedTrips {
+    if (_trips == null) return [];
+    var list = _trips!.where((t) {
+      final q = _searchQuery.toLowerCase();
+      return t.title.toLowerCase().contains(q) ||
+             t.startDate.contains(q) ||
+             (t.endDate?.contains(q) ?? false);
+    }).toList();
+    
+    list.sort((a, b) {
+      if (_sortOption == 'Recentes (Padrão)') {
+        return b.id!.compareTo(a.id!); // Assumindo ID maior = mais recente
+      } else if (_sortOption == 'Antigos') {
+        return a.id!.compareTo(b.id!);
+      } else if (_sortOption == 'Maior Gasto') {
+        return (_tripAmounts[b.id!] ?? 0).compareTo(_tripAmounts[a.id!] ?? 0);
+      } else if (_sortOption == 'Menor Gasto') {
+        return (_tripAmounts[a.id!] ?? 0).compareTo(_tripAmounts[b.id!] ?? 0);
+      }
+      return 0;
+    });
+    return list;
+  }
 
   @override
   void initState() {
@@ -91,12 +119,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    // Busca ou cria o usuário padrão para funcionar o app localmente
-    User? user = await UserDAO().getUser('nicole@exemplo.com', '123');
+    User? user = AuthService.currentUser;
     if (user == null) {
-      final newUser = User(name: "Nicole Grazzioli", email: "nicole@exemplo.com", password: "123");
-      await UserDAO().insertUser(newUser);
+      // Fallback para dev local se não houver login
       user = await UserDAO().getUser('nicole@exemplo.com', '123');
+      if (user == null) {
+        final newUser = User(name: "Nicole Grazzioli", email: "nicole@exemplo.com", password: "123");
+        await UserDAO().insertUser(newUser);
+        user = await UserDAO().getUser('nicole@exemplo.com', '123');
+      }
+      AuthService.currentUser = user;
     }
 
     // Busca viagens do banco
@@ -132,6 +164,39 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  void _showSortModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.cardBackground,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final options = ['Recentes (Padrão)', 'Antigos', 'Maior Gasto', 'Menor Gasto'];
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text("Ordenar viagens por", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+              ...options.map((option) => ListTile(
+                title: Text(option, style: const TextStyle(color: Colors.white)),
+                trailing: _sortOption == option ? const Icon(Icons.check, color: AppColors.moneyGreen) : null,
+                onTap: () {
+                  setState(() => _sortOption = option);
+                  Navigator.pop(context);
+                },
+              )),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -224,14 +289,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         // Barra de Pesquisa e Filtros (Widget Compartilhado)
                         SearchFilterBar(
-                          onFilterTap: () {
-                            // Lógica de filtrar
-                          },
-                          onSortTap: () {
-                            // Lógica de ordenar
-                          },
+                          showFilter: false, // Ocultamos na Home conforme planejado
+                          isSortActive: _sortOption != 'Recentes (Padrão)',
+                          onSortTap: _showSortModal,
+                          searchHint: "pesquisar viagem",
                           onSearchChanged: (value) {
-                            // Lógica de pesquisa
+                            setState(() {
+                              _searchQuery = value;
+                            });
                           },
                         ),
                       ],
@@ -240,12 +305,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // --- LISTA DE VIAGENS ---
                   Expanded(
-                    child: _trips == null || _trips!.isEmpty
+                    child: _filteredAndSortedTrips.isEmpty
                         ? const Center(
                             child: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 40.0),
                               child: Text(
-                                "Para onde vamos?\nCrie sua primeira viagem clicando no botão +",
+                                "Nenhuma viagem encontrada.\nCrie uma nova clicando no botão +",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white54, 
@@ -257,9 +322,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
-                            itemCount: _trips?.length ?? 0,
+                            itemCount: _filteredAndSortedTrips.length,
                             itemBuilder: (context, index) {
-                              final trip = _trips![index];
+                              final trip = _filteredAndSortedTrips[index];
                               return _buildTripCard(context, trip);
                             },
                           ),

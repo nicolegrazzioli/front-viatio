@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../core/models/expense.dart';
 import '../core/models/wallet.dart';
+import '../core/models/user.dart';
 import '../core/dao/expense_dao.dart';
 import '../core/dao/userDAO.dart';
 import '../core/dao/wallet_dao.dart';
+import '../core/authentication/auth_service.dart';
 
 class NewExpenseScreen extends StatefulWidget {
   final int tripId;
@@ -65,7 +67,17 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
   }
 
   Future<void> _loadCurrenciesAndVET() async {
-    final user = await UserDAO().getUser('nicole@exemplo.com', '123');
+    User? user = AuthService.currentUser;
+    if (user == null) {
+      user = await UserDAO().getUser('nicole@exemplo.com', '123');
+      if (user == null) {
+        final newUser = User(name: "Nicole Grazzioli", email: "nicole@exemplo.com", password: "123");
+        await UserDAO().insertUser(newUser);
+        user = await UserDAO().getUser('nicole@exemplo.com', '123');
+      }
+      AuthService.currentUser = user;
+    }
+    
     if (user != null) {
       final wallets = await WalletDAO().getWalletsByUser(user.id!);
       if (mounted) {

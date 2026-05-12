@@ -28,6 +28,39 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
   double _totalAmount = 0.0;
   Map<String, double> _categoryTotals = {};
 
+  String _searchQuery = '';
+  String _sortOption = 'Recentes (Padrão)';
+  String? _filterCategory;
+
+  List<Expense> get _filteredAndSortedExpenses {
+    if (_expenses == null) return [];
+    var list = _expenses!.where((e) {
+      final q = _searchQuery.toLowerCase();
+      final matchesQuery = e.title.toLowerCase().contains(q) ||
+                           e.date.contains(q) ||
+                           e.category.toLowerCase().contains(q) ||
+                           e.amount.toString().contains(q) ||
+                           e.amountBrl.toString().contains(q);
+      
+      final matchesFilter = _filterCategory == null || e.category == _filterCategory;
+      return matchesQuery && matchesFilter;
+    }).toList();
+    
+    list.sort((a, b) {
+      if (_sortOption == 'Recentes (Padrão)') {
+        return b.id!.compareTo(a.id!); 
+      } else if (_sortOption == 'Antigos') {
+        return a.id!.compareTo(b.id!);
+      } else if (_sortOption == 'Maior Valor') {
+        return b.amountBrl.compareTo(a.amountBrl);
+      } else if (_sortOption == 'Menor Valor') {
+        return a.amountBrl.compareTo(b.amountBrl);
+      }
+      return 0;
+    });
+    return list;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +86,77 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
         _categoryTotals = catTotals;
       });
     }
+  }
+
+  void _showSortModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.cardBackground,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        final options = ['Recentes (Padrão)', 'Antigos', 'Maior Valor', 'Menor Valor'];
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text("Ordenar gastos por", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+              ...options.map((option) => ListTile(
+                title: Text(option, style: const TextStyle(color: Colors.white)),
+                trailing: _sortOption == option ? const Icon(Icons.check, color: AppColors.moneyGreen) : null,
+                onTap: () {
+                  setState(() => _sortOption = option);
+                  Navigator.pop(context);
+                },
+              )),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.cardBackground,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        final options = [null, ...categories.map((c) => c.name)];
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text("Filtrar por Categoria", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: options.length,
+                  itemBuilder: (context, index) {
+                    final option = options[index];
+                    final title = option ?? "Todas as categorias";
+                    return ListTile(
+                      title: Text(title, style: const TextStyle(color: Colors.white)),
+                      trailing: _filterCategory == option ? const Icon(Icons.check, color: AppColors.moneyGreen) : null,
+                      onTap: () {
+                        setState(() => _filterCategory = option);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -158,27 +262,34 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: SearchFilterBar(
-                onFilterTap: () {},
-                onSortTap: () {},
-                onSearchChanged: (val) {},
+                onFilterTap: _showFilterModal,
+                onSortTap: _showSortModal,
+                isFilterActive: _filterCategory != null,
+                isSortActive: _sortOption != 'Recentes (Padrão)',
+                searchHint: "pesquisar",
+                onSearchChanged: (val) {
+                  setState(() {
+                    _searchQuery = val;
+                  });
+                },
               ),
             ),
             const SizedBox(height: 16),
             
             Expanded(
-              child: _expenses == null || _expenses!.isEmpty
-                  ? const Center(child: Text("Ainda não há gastos nesta viagem.", style: TextStyle(color: Colors.white54, fontSize: 16)))
+              child: _filteredAndSortedExpenses.isEmpty
+                  ? const Center(child: Text("Nenhum gasto encontrado.", style: TextStyle(color: Colors.white54, fontSize: 16)))
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      itemCount: _expenses!.length,
+                      itemCount: _filteredAndSortedExpenses.length,
                       itemBuilder: (context, index) {
-                        final expense = _expenses![index];
+                        final expense = _filteredAndSortedExpenses[index];
                         final cat = categories.firstWhere((c) => c.name == expense.category, orElse: () => categories[0]);
                         final currencySymbol = expense.currency == 'Euro' ? '€' : (expense.currency == 'Dólar' ? '\$' : 'R\$');
                         
                         return Column(
                           children: [
-                            if (index == 0 || _expenses![index].date != _expenses![index-1].date)
+                            if (index == 0 || _filteredAndSortedExpenses[index].date != _filteredAndSortedExpenses[index-1].date)
                               Padding(
                                 padding: const EdgeInsets.only(top: 16, bottom: 8),
                                 child: Align(
@@ -191,7 +302,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                               ),
                             _buildExpenseItem(expense, cat, "$currencySymbol ${expense.amount.toStringAsFixed(2)}", "R\$ ${expense.amountBrl.toStringAsFixed(2)}"),
                             const Divider(color: AppColors.silverBorder, height: 1),
-                            if (index == _expenses!.length - 1)
+                            if (index == _filteredAndSortedExpenses.length - 1)
                               const SizedBox(height: 80), // Padding extra no final
                           ],
                         );
