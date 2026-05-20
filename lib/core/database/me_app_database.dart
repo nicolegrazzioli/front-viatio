@@ -21,9 +21,9 @@ class AppDatabase {
   Future<Database> _initDatabase() async {
     final String path;
     if (kIsWeb) {
-      path = 'pilago_app.db';
+      path = 'viatio_app.db';
     } else {
-      path = join(await getDatabasesPath(), 'pilago_app.db');
+      path = join(await getDatabasesPath(), 'viatio_app.db');
     }
 
     return openDatabase(
@@ -36,7 +36,6 @@ class AppDatabase {
               name TEXT,
               email TEXT,
               password TEXT,
-              phone TEXT,
               profile_image TEXT
             )
             ''');

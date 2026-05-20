@@ -1,5 +1,5 @@
 Proposta de Projeto: Gestor de Gastos Multimoedas
-Nome: pila.go
+Nome: Viatio
 testar no chrome: 
 ```bash
 flutter run -d chrome
@@ -49,4 +49,5 @@ Pegue o cabo USB e conecte seu celular no computador.
 No seu celular, vá em Configurações > Sobre o Telefone e toque 7 vezes seguidas em "Número da Versão" (ou "Build Number") para ativar o modo desenvolvedor.
 Volte nas configurações, vá em Opções de Desenvolvedor e ative a Depuração USB (USB Debugging).
 Seu celular vai pedir permissão na tela, clique em "Permitir".
+Pronto! Agora volte no seu terminal do PC e rode flutter run. Seu próprio aparelho vai aparecer na lista e o app vai abrir na palma da sua mão!
 Pronto! Agora volte no seu terminal do PC e rode flutter run. Seu próprio aparelho vai aparecer na lista e o app vai abrir na palma da sua mão!

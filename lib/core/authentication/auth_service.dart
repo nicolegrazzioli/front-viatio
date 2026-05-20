@@ -12,7 +12,6 @@ class AuthService {
         'name': user.name,
         'email': user.email,
         'password': user.password,
-        'phone': user.phone ?? '',
       });
       
       return response.statusCode == 200;

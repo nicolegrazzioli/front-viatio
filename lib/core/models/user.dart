@@ -3,14 +3,12 @@ class User {
   final String name;
   final String email;
   final String password;
-  final String? phone;
 
   User({
    this.id,
    required this.name,
    required this.email,
    required this.password,
-   this.phone,
 });
 
   //chave, valor - chama user.toMap
@@ -21,7 +19,6 @@ class User {
       'name': name,
       'email': email,
       'password': password,
-      'phone': phone,
     };
   }
 
@@ -32,7 +29,6 @@ class User {
       name: map['name'],
       email: map['email'],
       password: map['password'],
-      phone: map['phone'],
     );
   }
 

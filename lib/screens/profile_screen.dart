@@ -107,37 +107,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: "pila.",
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        WidgetSpan(
-                          child: Container(
-                            margin: const EdgeInsets.only(left: 2),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: const BoxDecoration(
-                              color: AppColors.bottomGreen,
-                              borderRadius: BorderRadius.all(Radius.circular(20)),
-                            ),
-                            child: const Text(
-                              "go",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          alignment: PlaceholderAlignment.middle,
-                        ),
-                      ],
+                  const Text(
+                    "Viatio",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontFamily: 'Plus Jakarta Sans',
                     ),
                   ),
                 ],

@@ -213,34 +213,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                     child: Column(
                       children: [
-                        // Logo pila.go
-                        Row(
+                        // Logo Viatio
+                        const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
-                              "pila",
+                            Text(
+                              "Viatio",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Plus Jakarta Sans',
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Container(
-                              width: 35,
-                              height: 35,
-                              decoration: const BoxDecoration(
-                                color: AppColors.moneyGreen,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              ".go",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Plus Jakarta Sans',
                               ),

@@ -17,14 +17,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -74,38 +72,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   const SizedBox(height: 60),
                   // Logo
-                  Center(
-                    child: RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: "pila.",
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          WidgetSpan(
-                            child: Container(
-                              margin: EdgeInsets.only(left: 2),
-                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.bottomGreen,
-                                borderRadius: BorderRadius.all(Radius.circular(20)),
-                              ),
-                              child: Text(
-                                "go",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            alignment: PlaceholderAlignment.middle,
-                          ),
-                        ],
+                  const Center(
+                    child: Text(
+                      "Viatio",
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontFamily: 'Plus Jakarta Sans',
                       ),
                     ),
                   ),
@@ -221,44 +195,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
 
-                  // Confirmar Senha input
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    style: const TextStyle(color: Colors.white),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Por favor, confirme a senha';
-                      }
-                      if (value != _passwordController.text) {
-                        return 'As senhas não coincidem';
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                      labelText: "Confirmar senha",
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      suffixIcon: const Icon(Icons.remove_red_eye_outlined, color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(color: AppColors.silverBorder),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(color: AppColors.neonGreen),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(color: Colors.red),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(color: Colors.red),
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 32),
                   
                   SizedBox(
