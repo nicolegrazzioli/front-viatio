@@ -120,16 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     User? user = AuthService.currentUser;
-    if (user == null) {
-      // Fallback para dev local se não houver login
-      user = await UserDAO().getUser('nicole@exemplo.com', '123');
-      if (user == null) {
-        final newUser = User(name: "Nicole Grazzioli", email: "nicole@exemplo.com", password: "123");
-        await UserDAO().insertUser(newUser);
-        user = await UserDAO().getUser('nicole@exemplo.com', '123');
-      }
-      AuthService.currentUser = user;
-    }
+    if (user == null) return;
 
     // Busca viagens do banco
     final dbTrips = await TripDAO().getTripsByUser(user!.id!);

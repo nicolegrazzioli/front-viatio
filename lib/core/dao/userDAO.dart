@@ -9,14 +9,15 @@ class UserDAO {
      return await db.insert(table, user.toMap());
    }
 
-  Future<User?> getUser(String email, String password) async {
+  Future<User?> getLoggedUser() async {
      final db = await AppDatabase().database;
-     final result = await db.query(
-       table,
-       where: 'email = ? AND password = ?',
-       whereArgs: [email, password],
-     );
+     final result = await db.query(table, limit: 1);
      return result.isNotEmpty ? User.fromMap(result.first) : null;
+  }
+
+  Future<void> clearUsers() async {
+     final db = await AppDatabase().database;
+     await db.delete(table);
   }
 
   Future<int> updateUser(User user) async {

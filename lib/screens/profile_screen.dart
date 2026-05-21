@@ -34,15 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUser() async {
     User? user = AuthService.currentUser;
-    if (user == null) {
-      user = await UserDAO().getUser('nicole@exemplo.com', '123');
-      if (user == null) {
-        final newUser = User(name: "Nicole Grazzioli", email: "nicole@exemplo.com", password: "123");
-        await UserDAO().insertUser(newUser);
-        user = await UserDAO().getUser('nicole@exemplo.com', '123');
-      }
-      AuthService.currentUser = user;
-    }
+    if (user == null) return;
     
     if (user != null && mounted) {
       setState(() {

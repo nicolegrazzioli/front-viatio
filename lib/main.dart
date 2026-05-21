@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:app_final/core/database/me_app_database.dart';
+import 'package:app_final/core/authentication/auth_service.dart';
 import 'app_widget.dart';
 
 void main() async {
@@ -17,12 +18,14 @@ void main() async {
     }
     
     print("Tentando inicializar o banco de dados...");
-    // Inicialização do banco de dados conforme o PDF
     await AppDatabase().database;
     print("Banco de dados inicializado com sucesso!");
+    
+    // Inicia a sessão buscando o usuário do SQLite
+    await AuthService.initSession();
+    
   } catch (e) {
-    print("ERRO ao inicializar banco de dados: $e");
-    // Mesmo com erro no banco, chamamos o runApp para não ficar tela branca
+    print("ERRO ao inicializar: $e");
   }
 
   runApp(const MyApp());

@@ -68,16 +68,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
 
   Future<void> _loadCurrenciesAndVET() async {
     User? user = AuthService.currentUser;
-    if (user == null) {
-      user = await UserDAO().getUser('nicole@exemplo.com', '123');
-      if (user == null) {
-        final newUser = User(name: "Nicole Grazzioli", email: "nicole@exemplo.com", password: "123");
-        await UserDAO().insertUser(newUser);
-        user = await UserDAO().getUser('nicole@exemplo.com', '123');
-      }
-      AuthService.currentUser = user;
-    }
-    
+    if (user == null) return;
     if (user != null) {
       final wallets = await WalletDAO().getWalletsByUser(user.id!);
       if (mounted) {
