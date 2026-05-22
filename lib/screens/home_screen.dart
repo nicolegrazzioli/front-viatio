@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app_final/screens/profile_screen.dart';
+import 'package:app_final/screens/login_screen.dart';
 import 'package:app_final/screens/trip_details_screen.dart';
 import 'package:app_final/screens/new_trip_screen.dart';
 import '../core/models/user.dart';
@@ -58,13 +58,13 @@ final List<Category> categories = [
     color: const Color(0xFF26C6DA),
   ),
   Category(
-    name: 'Serviços',
+    name: 'Burocracia (visto, taxa, seguro)',
     icon: Icons.assignment,
     color: const Color(0xFF78909C),
   ),
   Category(
-    name: 'Extras',
-    icon: Icons.auto_awesome,
+    name: 'Saúde (farmácia, consulta)',
+    icon: Icons.local_hospital,
     color: const Color(0xFFFFCA28),
   ),
 ];
@@ -204,11 +204,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                     child: Column(
                       children: [
-                        // Logo Viatio
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        // Logo Viatio e Logout
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
+                            const SizedBox(width: 48), // Espaço para centralizar o título
+                            const Text(
                               "Viatio",
                               style: TextStyle(
                                 color: Colors.white,
@@ -216,6 +217,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Plus Jakarta Sans',
                               ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.logout, color: Colors.red),
+                              onPressed: () {
+                                AuthService().logout();
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                  (route) => false,
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -323,11 +335,6 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const BalancesScreen()),
-            );
-          } else if (index == 2) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
             );
           }
         },

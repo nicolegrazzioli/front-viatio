@@ -5,7 +5,6 @@ import '../core/theme/app_colors.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 import '../widgets/search_filter_bar.dart';
 import '../widgets/custom_fab.dart';
-import 'profile_screen.dart';
 import 'new_trip_screen.dart';
 import 'new_expense_screen.dart';
 import 'balances_screen.dart';
@@ -336,11 +335,6 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const BalancesScreen()),
-            );
-          } else if (index == 2) {
-             Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
             );
           }
         },

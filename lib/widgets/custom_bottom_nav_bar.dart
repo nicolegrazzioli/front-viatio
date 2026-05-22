@@ -38,11 +38,6 @@ class CustomBottomNavBar extends StatelessWidget {
             activeIcon: Icon(Icons.account_balance_wallet, size: 28),
             label: "Saldos",
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline, size: 28),
-            activeIcon: Icon(Icons.person, size: 28),
-            label: "Perfil",
-          ),
         ],
       ),
     );

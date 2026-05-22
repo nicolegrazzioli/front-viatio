@@ -4,7 +4,6 @@ import '../widgets/custom_bottom_nav_bar.dart';
 import '../widgets/custom_fab.dart';
 import '../widgets/search_filter_bar.dart';
 import 'home_screen.dart';
-import 'profile_screen.dart';
 import 'new_currency_purchase_screen.dart';
 import '../core/models/wallet.dart';
 import '../core/models/currency_transaction.dart';
@@ -584,11 +583,6 @@ class _BalancesScreenState extends State<BalancesScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
-          } else if (index == 2) {
-             Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
             );
           }
         },
