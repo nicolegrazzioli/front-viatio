@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: AuthService.currentUser == null ? LoginScreen() : const HomeScreen(),
+      home: AuthService.currentUser == null ? const LoginScreen() : const HomeScreen(),
     );
   }
 }

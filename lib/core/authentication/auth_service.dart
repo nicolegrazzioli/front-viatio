@@ -36,21 +36,24 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         final token = data['token'];
+        final userData = data['user'];
 
         // Salva o token JWT localmente
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('jwt_token', token);
 
-        // O backend precisa devolver os dados do usuário, mas nossa rota /auth/login retorna só o token.
-        // Como o JWT tem as infos, ou o backend manda um /profile, por agora mockamos o currentUser
-        // com o e-mail, e depois o ideal seria um endpoint para buscar os dados completos.
-        final tempUser = User(id: "offline_user", name: "Usuário", email: email, password: "---");
+        final loggedUser = User(
+          id: userData['id'],
+          name: userData['name'],
+          email: userData['email'],
+          password: "---", // não salvamos a senha no front
+        );
         
         await UserDAO().clearUsers();
-        await UserDAO().insertUser(tempUser);
+        await UserDAO().insertUser(loggedUser);
         
-        currentUser = tempUser;
-        return tempUser;
+        currentUser = loggedUser;
+        return loggedUser;
       }
     } catch (e) {
       print("Erro no login: $e");

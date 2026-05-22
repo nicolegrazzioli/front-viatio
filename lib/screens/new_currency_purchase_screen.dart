@@ -38,8 +38,6 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
     super.initState();
     _amountController.addListener(_updateVET);
     _totalBRLController.addListener(_updateVET);
-    
-    _loadPersistedOptions();
 
     if (widget.transaction != null) {
       final data = widget.transaction!;
@@ -48,11 +46,11 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
       _selectedCurrency = data.currency;
       
       String origin = data.source;
-      if (_origins.contains(origin)) {
-        _selectedOrigin = origin;
-      } else {
-        _selectedOrigin = _origins.first;
+      if (!_origins.contains(origin)) {
+        // Se a origem do gasto antigo não estiver na lista fixa, adiciona ela só pra podermos editar sem perder o dado
+        _origins.add(origin);
       }
+      _selectedOrigin = origin;
       
       _descriptionController.text = data.description ?? '';
       
@@ -62,17 +60,6 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
       } catch (e) {
         _selectedDate = DateTime.now();
       }
-    }
-  }
-
-  Future<void> _loadPersistedOptions() async {
-    final transactions = await CurrencyTransactionDAO().getTransactionsByUser(widget.userId);
-    if (mounted) {
-      setState(() {
-        for (var t in transactions) {
-          if (!_origins.contains(t.source)) _origins.insert(_origins.length - 1, t.source);
-        }
-      });
     }
   }
 
