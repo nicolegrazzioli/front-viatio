@@ -89,8 +89,10 @@ class CurrencyTransactionDAO {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         
+        final List<String> apiIds = [];
         for (var e in data) {
           final txId = e['id'];
+          apiIds.add(txId);
           final localData = await db.query('currency_transactions', where: 'id = ?', whereArgs: [txId]);
           
           if (localData.isNotEmpty && localData.first['is_synced'] == 0) {
@@ -114,6 +116,14 @@ class CurrencyTransactionDAO {
             {...tx.toMap(), 'is_synced': 1},
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
+        }
+
+        // Remove transações que foram apagadas no backend
+        final localSynced = await db.query('currency_transactions', where: 'user_id = ? AND is_synced = ?', whereArgs: [userId, 1]);
+        for (var local in localSynced) {
+          if (!apiIds.contains(local['id'])) {
+            await db.delete('currency_transactions', where: 'id = ?', whereArgs: [local['id']]);
+          }
         }
       }
     } catch (e) {

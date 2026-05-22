@@ -87,8 +87,10 @@ class TripDAO {
         
         // Não limpamos mais as viagens, fazemos UPSERT inteligente
         
+        final List<String> apiIds = [];
         for (var e in data) {
           final tripId = e['id'];
+          apiIds.add(tripId);
           final localData = await db.query('trips', where: 'id = ?', whereArgs: [tripId]);
           
           if (localData.isNotEmpty && localData.first['is_synced'] == 0) {
@@ -101,7 +103,7 @@ class TripDAO {
             title: e['title'],
             startDate: _fromApiDate(e['startDate']),
             endDate: e['endDate'] != null ? _fromApiDate(e['endDate']) : null,
-            coverType: e['coverType'],
+            coverType: e['coverType'] ?? 'cidade',
           );
           
           await db.insert(
@@ -109,6 +111,14 @@ class TripDAO {
             {...trip.toMap(), 'is_synced': 1},
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
+        }
+
+        // Remove viagens que foram apagadas no backend
+        final localSynced = await db.query('trips', where: 'user_id = ? AND is_synced = ?', whereArgs: [userId, 1]);
+        for (var local in localSynced) {
+          if (!apiIds.contains(local['id'])) {
+            await db.delete('trips', where: 'id = ?', whereArgs: [local['id']]);
+          }
         }
       }
     } catch (e) {

@@ -99,8 +99,10 @@ class ExpenseDAO {
         
         // Removemos o delete
         
+        final List<String> apiIds = [];
         for (var e in data) {
           final expId = e['id'];
+          apiIds.add(expId);
           final localData = await db.query('expenses', where: 'id = ?', whereArgs: [expId]);
           
           if (localData.isNotEmpty && localData.first['is_synced'] == 0) {
@@ -127,6 +129,14 @@ class ExpenseDAO {
             {...exp.toMap(), 'is_synced': 1},
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
+        }
+
+        // Remove despesas que foram apagadas no backend
+        final localSynced = await db.query('expenses', where: 'trip_id = ? AND is_synced = ?', whereArgs: [tripId, 1]);
+        for (var local in localSynced) {
+          if (!apiIds.contains(local['id'])) {
+            await db.delete('expenses', where: 'id = ?', whereArgs: [local['id']]);
+          }
         }
       }
     } catch (e) {
