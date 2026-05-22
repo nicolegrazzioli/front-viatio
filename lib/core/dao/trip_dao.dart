@@ -76,12 +76,13 @@ class TripDAO {
     }
   }
 
-  Future<List<Trip>> getTripsByUser(String userId) async {
+  Future<List<Trip>> getTripsByUser(String userId, {bool fetchApi = true}) async {
     final db = await AppDatabase().database;
     
     // 1. Tentar buscar da API para atualizar o banco local
-    try {
-      final response = await ApiClient.get('/trips');
+    if (fetchApi) {
+      try {
+        final response = await ApiClient.get('/trips');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         
@@ -123,6 +124,7 @@ class TripDAO {
       }
     } catch (e) {
       print("Offline: Buscando viagens locais do SQLite. Erro API: $e");
+    }
     }
 
     // 2. Retornar os dados do banco local

@@ -31,6 +31,18 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
   String _sortOption = 'Recentes (Padrão)';
   String? _filterCategory;
 
+  DateTime _parseDate(String dateStr) {
+    try {
+      final parts = dateStr.split('/');
+      if (parts.length == 3) {
+        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      }
+    } catch (e) {
+      // ignore
+    }
+    return DateTime.now();
+  }
+
   List<Expense> get _filteredAndSortedExpenses {
     if (_expenses == null) return [];
     var list = _expenses!.where((e) {
@@ -47,9 +59,17 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
     
     list.sort((a, b) {
       if (_sortOption == 'Recentes (Padrão)') {
-        return b.id!.compareTo(a.id!); 
+        final d1 = _parseDate(a.date);
+        final d2 = _parseDate(b.date);
+        final dateCompare = d2.compareTo(d1);
+        if (dateCompare != 0) return dateCompare;
+        return (b.id ?? '').compareTo(a.id ?? ''); 
       } else if (_sortOption == 'Antigos') {
-        return a.id!.compareTo(b.id!);
+        final d1 = _parseDate(a.date);
+        final d2 = _parseDate(b.date);
+        final dateCompare = d1.compareTo(d2);
+        if (dateCompare != 0) return dateCompare;
+        return (a.id ?? '').compareTo(b.id ?? '');
       } else if (_sortOption == 'Maior Valor') {
         return b.amountBrl.compareTo(a.amountBrl);
       } else if (_sortOption == 'Menor Valor') {
@@ -66,9 +86,9 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
     _loadExpenses();
   }
 
-  Future<void> _loadExpenses() async {
+  Future<void> _loadExpenses({bool fetchApi = true}) async {
     if (widget.trip.id == null) return;
-    final expenses = await ExpenseDAO().getExpensesByTrip(widget.trip.id!);
+    final expenses = await ExpenseDAO().getExpensesByTrip(widget.trip.id!, fetchApi: fetchApi);
     
     double total = 0.0;
     Map<String, double> catTotals = {};
@@ -185,7 +205,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                   MaterialPageRoute(
                     builder: (context) => NewTripScreen(trip: widget.trip),
                   ),
-                );
+                ).then((_) => _loadExpenses(fetchApi: false));
               } else if (value == 'delete') {
                 _showDeleteDialog(context);
               }
@@ -319,7 +339,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             context,
             MaterialPageRoute(builder: (context) => NewExpenseScreen(tripId: widget.trip.id!, tripTitle: widget.trip.title)),
           );
-          _loadExpenses(); // Atualiza a lista e totais
+          _loadExpenses(fetchApi: false); // Atualiza a lista e totais
         },
       ),
       
@@ -366,7 +386,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                   await ExpenseDAO().deleteExpense(expense.id!);
                   if (mounted) {
                     Navigator.pop(ctx, true);
-                    _loadExpenses();
+                    _loadExpenses(fetchApi: false);
                   }
                 }, 
                 child: const Text("Excluir", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))
@@ -386,8 +406,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                 expense: expense,
               ),
             ),
-          );
-          _loadExpenses();
+          ).then((_) => _loadExpenses(fetchApi: false));
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0),

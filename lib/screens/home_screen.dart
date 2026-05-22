@@ -88,6 +88,18 @@ class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = '';
   String _sortOption = 'Recentes (Padrão)';
 
+  DateTime _parseDate(String dateStr) {
+    try {
+      final parts = dateStr.split('/');
+      if (parts.length == 3) {
+        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      }
+    } catch (e) {
+      // ignore
+    }
+    return DateTime.now();
+  }
+
   List<Trip> get _filteredAndSortedTrips {
     if (_trips == null) return [];
     var list = _trips!.where((t) {
@@ -99,9 +111,17 @@ class _HomeScreenState extends State<HomeScreen> {
     
     list.sort((a, b) {
       if (_sortOption == 'Recentes (Padrão)') {
-        return b.id!.compareTo(a.id!); // Assumindo ID maior = mais recente
+        final d1 = _parseDate(a.startDate);
+        final d2 = _parseDate(b.startDate);
+        final dateCompare = d2.compareTo(d1);
+        if (dateCompare != 0) return dateCompare;
+        return (b.id ?? '').compareTo(a.id ?? '');
       } else if (_sortOption == 'Antigos') {
-        return a.id!.compareTo(b.id!);
+        final d1 = _parseDate(a.startDate);
+        final d2 = _parseDate(b.startDate);
+        final dateCompare = d1.compareTo(d2);
+        if (dateCompare != 0) return dateCompare;
+        return (a.id ?? '').compareTo(b.id ?? '');
       } else if (_sortOption == 'Maior Gasto') {
         return (_tripAmounts[b.id!] ?? 0).compareTo(_tripAmounts[a.id!] ?? 0);
       } else if (_sortOption == 'Menor Gasto') {
@@ -118,12 +138,12 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadData();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadData({bool fetchApi = true}) async {
     User? user = AuthService.currentUser;
     if (user == null) return;
 
     // Busca viagens do banco
-    final dbTrips = await TripDAO().getTripsByUser(user!.id!);
+    final dbTrips = await TripDAO().getTripsByUser(user!.id!, fetchApi: fetchApi);
     
     // Calcula o valor total (BRL) para cada viagem somando os gastos
     final expenseDAO = ExpenseDAO();
@@ -325,7 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context) => NewTripScreen(userId: _currentUser!.id!),
             ),
           );
-          _loadData(); // Recarrega os dados ao voltar
+          _loadData(fetchApi: false); // Recarrega instantaneamente do banco local
         },
       ),
       bottomNavigationBar: CustomBottomNavBar(
@@ -356,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
             builder: (context) => TripDetailsScreen(trip: trip),
           ),
         );
-        _loadData(); // Recarrega caso a viagem tenha sido editada ou excluída
+        _loadData(fetchApi: false); // Recarrega instantaneamente do banco local
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),

@@ -33,6 +33,18 @@ class _BalancesScreenState extends State<BalancesScreen> {
   String? _filterCurrency;
   String? _filterSource;
 
+  DateTime _parseDate(String dateStr) {
+    try {
+      final parts = dateStr.split('/');
+      if (parts.length == 3) {
+        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      }
+    } catch (e) {
+      // ignore
+    }
+    return DateTime.now();
+  }
+
   List<CurrencyTransaction> get _filteredAndSortedTransactions {
     if (_transactions == null) return [];
     var list = _transactions!.where((t) {
@@ -49,9 +61,17 @@ class _BalancesScreenState extends State<BalancesScreen> {
     
     list.sort((a, b) {
       if (_sortOption == 'Recentes (Padrão)') {
-        return b.id!.compareTo(a.id!); 
+        final d1 = _parseDate(a.date);
+        final d2 = _parseDate(b.date);
+        final dateCompare = d2.compareTo(d1);
+        if (dateCompare != 0) return dateCompare;
+        return (b.id ?? '').compareTo(a.id ?? ''); 
       } else if (_sortOption == 'Antigos') {
-        return a.id!.compareTo(b.id!);
+        final d1 = _parseDate(a.date);
+        final d2 = _parseDate(b.date);
+        final dateCompare = d1.compareTo(d2);
+        if (dateCompare != 0) return dateCompare;
+        return (a.id ?? '').compareTo(b.id ?? '');
       } else if (_sortOption == 'Maior Valor') {
         return b.amountBrl.compareTo(a.amountBrl);
       } else if (_sortOption == 'Menor Valor') {
@@ -68,7 +88,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
     _loadData();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadData({bool fetchApi = true}) async {
     User? user = AuthService.currentUser;
     if (user == null) {
       if (mounted) setState(() => _isLoading = false);
@@ -76,7 +96,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
     }
     
     final wallets = await WalletDAO().getWalletsByUser(user.id!);
-    final transactions = await CurrencyTransactionDAO().getTransactionsByUser(user.id!);
+    final transactions = await CurrencyTransactionDAO().getTransactionsByUser(user.id!, fetchApi: fetchApi);
     
     bool hasEUR = false;
     bool hasUSD = false;
@@ -335,7 +355,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
 
                   if (mounted) {
                     Navigator.pop(ctx, true);
-                    _loadData();
+                    _loadData(fetchApi: false);
                   }
                 }, 
                 child: const Text("Excluir", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))
@@ -356,7 +376,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
                 ),
               ),
             );
-            _loadData();
+            _loadData(fetchApi: false);
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -572,7 +592,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
               builder: (context) => NewCurrencyPurchaseScreen(userId: _currentUser!.id!),
             ),
           );
-          _loadData();
+          _loadData(fetchApi: false);
         },
       ),
       

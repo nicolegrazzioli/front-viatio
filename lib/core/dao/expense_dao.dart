@@ -88,12 +88,13 @@ class ExpenseDAO {
     }
   }
 
-  Future<List<Expense>> getExpensesByTrip(String tripId) async {
+  Future<List<Expense>> getExpensesByTrip(String tripId, {bool fetchApi = true}) async {
     final db = await AppDatabase().database;
 
     // 1. Tentar buscar da API para atualizar o banco local
-    try {
-      final response = await ApiClient.get('/expenses/trip/$tripId');
+    if (fetchApi) {
+      try {
+        final response = await ApiClient.get('/expenses/trip/$tripId');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         
@@ -141,6 +142,7 @@ class ExpenseDAO {
       }
     } catch (e) {
       print("Offline: Buscando gastos locais do SQLite. Erro API: $e");
+    }
     }
 
     // 2. Retornar os dados do banco local

@@ -81,11 +81,12 @@ class CurrencyTransactionDAO {
     }
   }
 
-  Future<List<CurrencyTransaction>> getTransactionsByUser(String userId) async {
+  Future<List<CurrencyTransaction>> getTransactionsByUser(String userId, {bool fetchApi = true}) async {
     final db = await AppDatabase().database;
 
-    try {
-      final response = await ApiClient.get('/currency-transactions');
+    if (fetchApi) {
+      try {
+        final response = await ApiClient.get('/currency-transactions');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         
@@ -128,6 +129,7 @@ class CurrencyTransactionDAO {
       }
     } catch (e) {
       print("Offline: Buscando transações locais do SQLite. Erro API: $e");
+    }
     }
 
     final List<Map<String, dynamic>> maps = await db.query(
