@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../api/api_client.dart';
+import '../api/sync_service.dart';
 import '../dao/userDAO.dart';
 
 class AuthService {
@@ -9,6 +10,9 @@ class AuthService {
 
   static Future<void> initSession() async {
     currentUser = await UserDAO().getLoggedUser();
+    if (currentUser != null) {
+      SyncService.syncAllUnsynced();
+    }
   }
 
   Future<bool> register(User user) async {
@@ -53,6 +57,7 @@ class AuthService {
         await UserDAO().insertUser(loggedUser);
         
         currentUser = loggedUser;
+        SyncService.syncAllUnsynced(); // Tenta sincronizar registros criados offline
         return loggedUser;
       }
     } catch (e) {

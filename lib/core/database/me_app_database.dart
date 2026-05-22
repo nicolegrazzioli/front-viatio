@@ -28,7 +28,7 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
             CREATE TABLE users(
@@ -36,7 +36,8 @@ class AppDatabase {
               name TEXT,
               email TEXT,
               password TEXT,
-              profile_image TEXT
+              profile_image TEXT,
+              is_synced INTEGER DEFAULT 0
             )
             ''');
 
@@ -48,6 +49,7 @@ class AppDatabase {
               start_date TEXT,
               end_date TEXT,
               cover_type TEXT,
+              is_synced INTEGER DEFAULT 0,
               FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             )
             ''');
@@ -66,6 +68,7 @@ class AppDatabase {
               amount_brl REAL,
               description TEXT,
               photo_path TEXT,
+              is_synced INTEGER DEFAULT 0,
               FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
             )
             ''');
@@ -82,6 +85,7 @@ class AppDatabase {
               vet_rate REAL,
               description TEXT,
               photo_path TEXT,
+              is_synced INTEGER DEFAULT 0,
               FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             )
             ''');
@@ -92,10 +96,20 @@ class AppDatabase {
               currency TEXT,
               balance REAL,
               average_vet REAL,
+              is_synced INTEGER DEFAULT 0,
               PRIMARY KEY (user_id, currency),
               FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             )
             ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute("ALTER TABLE users ADD COLUMN is_synced INTEGER DEFAULT 0");
+          await db.execute("ALTER TABLE trips ADD COLUMN is_synced INTEGER DEFAULT 0");
+          await db.execute("ALTER TABLE expenses ADD COLUMN is_synced INTEGER DEFAULT 0");
+          await db.execute("ALTER TABLE currency_transactions ADD COLUMN is_synced INTEGER DEFAULT 0");
+          await db.execute("ALTER TABLE wallets ADD COLUMN is_synced INTEGER DEFAULT 0");
+        }
       },
       onOpen: (db) async {
         await _seedDatabase(db);

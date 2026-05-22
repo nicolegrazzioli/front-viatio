@@ -2,6 +2,7 @@ import 'dart:convert';
 import '../models/wallet.dart';
 import '../api/api_client.dart';
 import '../database/me_app_database.dart';
+import 'package:sqflite/sqflite.dart';
 
 class WalletDAO {
   Future<int> insertWallet(Wallet wallet) async {
@@ -17,8 +18,6 @@ class WalletDAO {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         
-        await db.delete('wallets', where: 'user_id = ?', whereArgs: [userId]);
-
         for (var e in data) {
           final wallet = Wallet(
             userId: userId,
@@ -26,7 +25,11 @@ class WalletDAO {
             balance: e['balance']?.toDouble() ?? 0.0,
             averageVet: e['averageVet']?.toDouble() ?? 0.0,
           );
-          await db.insert('wallets', wallet.toMap());
+          await db.insert(
+            'wallets', 
+            {...wallet.toMap(), 'is_synced': 1},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
         }
       }
     } catch (e) {

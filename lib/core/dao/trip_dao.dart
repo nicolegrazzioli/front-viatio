@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import '../models/trip.dart';
 import '../api/api_client.dart';
 import '../database/me_app_database.dart';
+import 'package:sqflite/sqflite.dart';
 
 class TripDAO {
   final _uuid = const Uuid();
@@ -36,7 +37,12 @@ class TripDAO {
       coverType: trip.coverType,
     );
 
-    await db.insert('trips', newTrip.toMap());
+    // Salva localmente como não sincronizado
+    await db.insert(
+      'trips', 
+      {...newTrip.toMap(), 'is_synced': 0},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
 
     // Sincroniza com a API sem bloquear o retorno
     _syncInsertTrip(newTrip);
@@ -53,8 +59,20 @@ class TripDAO {
         'endDate': trip.endDate != null ? _toApiDate(trip.endDate!) : null,
         'coverType': trip.coverType,
       });
+      // Se sucesso, marca como sincronizado
+      final db = await AppDatabase().database;
+      await db.update('trips', {'is_synced': 1}, where: 'id = ?', whereArgs: [trip.id]);
     } catch (e) {
       print("Offline: Viagem salva apenas localmente. Erro API: $e");
+    }
+  }
+
+  Future<void> syncUnsyncedTrips() async {
+    final db = await AppDatabase().database;
+    final unsynced = await db.query('trips', where: 'is_synced = ?', whereArgs: [0]);
+    for (var map in unsynced) {
+      final trip = Trip.fromMap(map);
+      _syncInsertTrip(trip); // Tenta reenviar
     }
   }
 
@@ -67,19 +85,30 @@ class TripDAO {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         
-        // Limpa as viagens antigas e salva as novas da API
-        await db.delete('trips', where: 'user_id = ?', whereArgs: [userId]);
+        // Não limpamos mais as viagens, fazemos UPSERT inteligente
         
         for (var e in data) {
+          final tripId = e['id'];
+          final localData = await db.query('trips', where: 'id = ?', whereArgs: [tripId]);
+          
+          if (localData.isNotEmpty && localData.first['is_synced'] == 0) {
+            continue; // Pula atualização para não sobrescrever dados editados/criados offline
+          }
+          
           final trip = Trip(
-            id: e['id'],
+            id: tripId,
             userId: userId,
             title: e['title'],
             startDate: _fromApiDate(e['startDate']),
             endDate: e['endDate'] != null ? _fromApiDate(e['endDate']) : null,
             coverType: e['coverType'],
           );
-          await db.insert('trips', trip.toMap());
+          
+          await db.insert(
+            'trips', 
+            {...trip.toMap(), 'is_synced': 1},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
         }
       }
     } catch (e) {

@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import '../models/expense.dart';
 import '../api/api_client.dart';
 import '../database/me_app_database.dart';
+import 'package:sqflite/sqflite.dart';
 
 class ExpenseDAO {
   final _uuid = const Uuid();
@@ -42,7 +43,12 @@ class ExpenseDAO {
       photoPath: expense.photoPath,
     );
 
-    await db.insert('expenses', newExpense.toMap());
+    // Salva localmente como não sincronizado
+    await db.insert(
+      'expenses', 
+      {...newExpense.toMap(), 'is_synced': 0},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
 
     _syncInsertExpense(newExpense);
 
@@ -65,8 +71,20 @@ class ExpenseDAO {
         'description': expense.description,
         'photoPath': expense.photoPath,
       });
+      // Se sucesso, marca como sincronizado
+      final db = await AppDatabase().database;
+      await db.update('expenses', {'is_synced': 1}, where: 'id = ?', whereArgs: [expense.id]);
     } catch (e) {
       print("Offline: Gasto salvo apenas localmente. Erro API: $e");
+    }
+  }
+
+  Future<void> syncUnsyncedExpenses() async {
+    final db = await AppDatabase().database;
+    final unsynced = await db.query('expenses', where: 'is_synced = ?', whereArgs: [0]);
+    for (var map in unsynced) {
+      final expense = Expense.fromMap(map);
+      _syncInsertExpense(expense);
     }
   }
 
@@ -79,11 +97,18 @@ class ExpenseDAO {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         
-        await db.delete('expenses', where: 'trip_id = ?', whereArgs: [tripId]);
-
+        // Removemos o delete
+        
         for (var e in data) {
+          final expId = e['id'];
+          final localData = await db.query('expenses', where: 'id = ?', whereArgs: [expId]);
+          
+          if (localData.isNotEmpty && localData.first['is_synced'] == 0) {
+            continue; // Pula para não sobrescrever
+          }
+          
           final exp = Expense(
-            id: e['id'],
+            id: expId,
             tripId: e['tripId'],
             title: e['title'],
             amount: e['amount']?.toDouble() ?? 0.0,
@@ -96,7 +121,12 @@ class ExpenseDAO {
             description: e['description'],
             photoPath: e['photoPath'],
           );
-          await db.insert('expenses', exp.toMap());
+          
+          await db.insert(
+            'expenses', 
+            {...exp.toMap(), 'is_synced': 1},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
         }
       }
     } catch (e) {
@@ -117,11 +147,12 @@ class ExpenseDAO {
     final db = await AppDatabase().database;
     await db.update(
       'expenses',
-      expense.toMap(),
+      {...expense.toMap(), 'is_synced': 0},
       where: 'id = ?',
       whereArgs: [expense.id],
     );
-    // Para simplificar, ignorando sync de update por enquanto
+    
+    _syncInsertExpense(expense);
     return 1;
   }
 

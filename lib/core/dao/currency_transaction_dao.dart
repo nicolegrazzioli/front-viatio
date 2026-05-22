@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import '../models/currency_transaction.dart';
 import '../api/api_client.dart';
 import '../database/me_app_database.dart';
+import 'package:sqflite/sqflite.dart';
 
 class CurrencyTransactionDAO {
   final _uuid = const Uuid();
@@ -40,7 +41,11 @@ class CurrencyTransactionDAO {
       photoPath: transaction.photoPath,
     );
 
-    await db.insert('currency_transactions', newTx.toMap());
+    await db.insert(
+      'currency_transactions', 
+      {...newTx.toMap(), 'is_synced': 0},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
 
     _syncInsertTransaction(newTx);
 
@@ -60,8 +65,19 @@ class CurrencyTransactionDAO {
         'description': transaction.description,
         'photoPath': transaction.photoPath,
       });
+      final db = await AppDatabase().database;
+      await db.update('currency_transactions', {'is_synced': 1}, where: 'id = ?', whereArgs: [transaction.id]);
     } catch (e) {
       print("Offline: Transação salva apenas localmente. Erro API: $e");
+    }
+  }
+
+  Future<void> syncUnsyncedTransactions() async {
+    final db = await AppDatabase().database;
+    final unsynced = await db.query('currency_transactions', where: 'is_synced = ?', whereArgs: [0]);
+    for (var map in unsynced) {
+      final transaction = CurrencyTransaction.fromMap(map);
+      _syncInsertTransaction(transaction);
     }
   }
 
@@ -73,11 +89,16 @@ class CurrencyTransactionDAO {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         
-        await db.delete('currency_transactions', where: 'user_id = ?', whereArgs: [userId]);
-
         for (var e in data) {
+          final txId = e['id'];
+          final localData = await db.query('currency_transactions', where: 'id = ?', whereArgs: [txId]);
+          
+          if (localData.isNotEmpty && localData.first['is_synced'] == 0) {
+            continue;
+          }
+          
           final tx = CurrencyTransaction(
-            id: e['id'],
+            id: txId,
             userId: userId,
             amount: e['amount']?.toDouble() ?? 0.0,
             currency: e['currency'],
@@ -88,7 +109,11 @@ class CurrencyTransactionDAO {
             description: e['description'],
             photoPath: e['photoPath'],
           );
-          await db.insert('currency_transactions', tx.toMap());
+          await db.insert(
+            'currency_transactions', 
+            {...tx.toMap(), 'is_synced': 1},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
         }
       }
     } catch (e) {
@@ -108,10 +133,11 @@ class CurrencyTransactionDAO {
     final db = await AppDatabase().database;
     await db.update(
       'currency_transactions',
-      transaction.toMap(),
+      {...transaction.toMap(), 'is_synced': 0},
       where: 'id = ?',
       whereArgs: [transaction.id],
     );
+    _syncInsertTransaction(transaction);
     return 1;
   }
 
