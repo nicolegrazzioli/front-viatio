@@ -44,7 +44,7 @@ class AuthService {
         // O backend precisa devolver os dados do usuário, mas nossa rota /auth/login retorna só o token.
         // Como o JWT tem as infos, ou o backend manda um /profile, por agora mockamos o currentUser
         // com o e-mail, e depois o ideal seria um endpoint para buscar os dados completos.
-        final tempUser = User(id: 0, name: "Usuário", email: email, password: "---");
+        final tempUser = User(id: "offline_user", name: "Usuário", email: email, password: "---");
         
         await UserDAO().clearUsers();
         await UserDAO().insertUser(tempUser);

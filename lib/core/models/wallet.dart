@@ -1,5 +1,5 @@
 class Wallet {
-  final int userId;
+  final String userId;
   final String currency;
   final double balance;
   final double averageVet;
@@ -22,7 +22,7 @@ class Wallet {
 
   factory Wallet.fromMap(Map<String, dynamic> map) {
     return Wallet(
-      userId: map['user_id'],
+      userId: map['user_id']?.toString() ?? '',
       currency: map['currency'],
       balance: map['balance'],
       averageVet: map['average_vet'],

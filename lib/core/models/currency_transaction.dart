@@ -1,6 +1,6 @@
 class CurrencyTransaction {
-  final int? id;
-  final int userId;
+  final String? id;
+  final String userId;
   final double amount;
   final String currency;
   final double amountBrl;
@@ -40,8 +40,8 @@ class CurrencyTransaction {
 
   factory CurrencyTransaction.fromMap(Map<String, dynamic> map) {
     return CurrencyTransaction(
-      id: map['id'],
-      userId: map['user_id'],
+      id: map['id']?.toString(),
+      userId: map['user_id']?.toString() ?? '',
       amount: map['amount'],
       currency: map['currency'],
       amountBrl: map['amount_brl'],

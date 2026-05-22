@@ -32,7 +32,7 @@ class AppDatabase {
       onCreate: (db, version) async {
         await db.execute('''
             CREATE TABLE users(
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              id TEXT PRIMARY KEY,
               name TEXT,
               email TEXT,
               password TEXT,
@@ -42,8 +42,8 @@ class AppDatabase {
 
         await db.execute('''
             CREATE TABLE trips(
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              user_id INTEGER,
+              id TEXT PRIMARY KEY,
+              user_id TEXT,
               title TEXT,
               start_date TEXT,
               end_date TEXT,
@@ -54,8 +54,8 @@ class AppDatabase {
 
         await db.execute('''
             CREATE TABLE expenses(
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              trip_id INTEGER,
+              id TEXT PRIMARY KEY,
+              trip_id TEXT,
               title TEXT,
               amount REAL,
               currency TEXT,
@@ -72,8 +72,8 @@ class AppDatabase {
 
         await db.execute('''
             CREATE TABLE currency_transactions(
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              user_id INTEGER,
+              id TEXT PRIMARY KEY,
+              user_id TEXT,
               amount REAL,
               currency TEXT,
               amount_brl REAL,
@@ -88,7 +88,7 @@ class AppDatabase {
 
         await db.execute('''
             CREATE TABLE wallets(
-              user_id INTEGER,
+              user_id TEXT,
               currency TEXT,
               balance REAL,
               average_vet REAL,

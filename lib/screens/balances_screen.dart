@@ -71,27 +71,38 @@ class _BalancesScreenState extends State<BalancesScreen> {
 
   Future<void> _loadData() async {
     User? user = AuthService.currentUser;
-    if (user == null) return;
-    if (user != null) {
-      final wallets = await WalletDAO().getWalletsByUser(user.id!);
-      final transactions = await CurrencyTransactionDAO().getTransactionsByUser(user.id!);
-      
-      double total = 0.0;
-      for (var w in wallets) {
-        total += (w.balance * w.averageVet);
-      }
-      
-      if (mounted) {
-        setState(() {
-          _currentUser = user;
-          _wallets = wallets;
-          _transactions = transactions;
-          _totalBrl = total;
-          _isLoading = false;
-        });
-      }
-    } else {
+    if (user == null) {
       if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+    
+    final wallets = await WalletDAO().getWalletsByUser(user.id!);
+    final transactions = await CurrencyTransactionDAO().getTransactionsByUser(user.id!);
+    
+    bool hasEUR = false;
+    bool hasUSD = false;
+    
+    for (var w in wallets) {
+       if (w.currency == 'EUR' || w.currency == 'Euro') hasEUR = true;
+       if (w.currency == 'USD' || w.currency == 'Dólar') hasUSD = true;
+    }
+    
+    if (!hasEUR) wallets.insert(0, Wallet(userId: user.id!, currency: 'EUR', balance: 0, averageVet: 0));
+    if (!hasUSD) wallets.insert(0, Wallet(userId: user.id!, currency: 'USD', balance: 0, averageVet: 0));
+    
+    double total = 0.0;
+    for (var w in wallets) {
+      total += (w.balance * w.averageVet);
+    }
+    
+    if (mounted) {
+      setState(() {
+        _currentUser = user;
+        _wallets = wallets;
+        _transactions = transactions;
+        _totalBrl = total;
+        _isLoading = false;
+      });
     }
   }
 
@@ -226,8 +237,8 @@ class _BalancesScreenState extends State<BalancesScreen> {
   }
 
   Color _getCurrencyColor(String currency) {
-    if (currency == 'Euro') return AppColors.euroColor;
-    if (currency == 'Dólar') return AppColors.dollarColor;
+    if (currency == 'Euro' || currency == 'EUR') return const Color(0xFFFFD700); // Gold
+    if (currency == 'Dólar' || currency == 'USD') return AppColors.dollarColor;
     
     // Gera uma cor consistente baseada no nome da moeda
     int hash = 0;
@@ -239,16 +250,16 @@ class _BalancesScreenState extends State<BalancesScreen> {
   }
 
   String _getCurrencyCode(String currency) {
-    if (currency == 'Euro') return 'EUR';
-    if (currency == 'Dólar') return 'USD';
-    if (currency == 'Libra') return 'GBP';
+    if (currency == 'Euro' || currency == 'EUR') return 'EUR';
+    if (currency == 'Dólar' || currency == 'USD') return 'USD';
+    if (currency == 'Libra' || currency == 'GBP') return 'GBP';
     return currency.toUpperCase().substring(0, currency.length >= 3 ? 3 : currency.length);
   }
 
   String _getCurrencySymbol(String currency) {
-    if (currency == 'Euro') return '€';
-    if (currency == 'Dólar') return 'US\$';
-    if (currency == 'Libra') return '£';
+    if (currency == 'Euro' || currency == 'EUR') return '€';
+    if (currency == 'Dólar' || currency == 'USD') return 'US\$';
+    if (currency == 'Libra' || currency == 'GBP') return '£';
     return _getCurrencyCode(currency);
   }
 

@@ -5,7 +5,7 @@ import '../core/dao/trip_dao.dart';
 
 class NewTripScreen extends StatefulWidget {
   final Trip? trip;
-  final int? userId;
+  final String? userId;
   const NewTripScreen({super.key, this.trip, this.userId});
 
   @override
@@ -218,7 +218,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
                       await TripDAO().updateTrip(trip);
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Viagem atualizada com sucesso!'), backgroundColor: AppColors.moneyGreen));
                     } else {
-                      int id = await TripDAO().insertTrip(trip);
+                      String id = await TripDAO().insertTrip(trip);
                       print("Viagem criada com sucesso no SQLite! ID: $id");
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Viagem criada com sucesso!'), backgroundColor: AppColors.moneyGreen));
                     }

@@ -7,7 +7,7 @@ import '../core/dao/currency_transaction_dao.dart';
 import '../core/dao/wallet_dao.dart';
 
 class NewCurrencyPurchaseScreen extends StatefulWidget {
-  final int userId;
+  final String userId;
   final CurrencyTransaction? transaction;
 
   const NewCurrencyPurchaseScreen({
@@ -25,11 +25,11 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
   final TextEditingController _totalBRLController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   
-  String _selectedCurrency = 'Euro';
-  final List<String> _currencies = ['Euro', 'Dólar', 'Libra', 'Nova'];
+  String _selectedCurrency = 'EUR';
+  final List<String> _currencies = ['BRL', 'USD', 'EUR'];
   
   String _selectedOrigin = 'Wise';
-  final List<String> _origins = ['Wise', 'Revolut', 'Picnic', 'Papel', 'Nova'];
+  final List<String> _origins = ['Wise', 'Revolut', 'Picnic', 'Inter', 'Papel/Câmbio'];
   
   DateTime _selectedDate = DateTime.now();
 
@@ -48,10 +48,11 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
       _selectedCurrency = data.currency;
       
       String origin = data.source;
-      if (!_origins.contains(origin)) {
-        _origins.insert(_origins.length - 1, origin);
+      if (_origins.contains(origin)) {
+        _selectedOrigin = origin;
+      } else {
+        _selectedOrigin = _origins.first;
       }
-      _selectedOrigin = origin;
       
       _descriptionController.text = data.description ?? '';
       
@@ -69,7 +70,6 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
     if (mounted) {
       setState(() {
         for (var t in transactions) {
-          if (!_currencies.contains(t.currency)) _currencies.insert(_currencies.length - 1, t.currency);
           if (!_origins.contains(t.source)) _origins.insert(_origins.length - 1, t.source);
         }
       });
@@ -97,68 +97,6 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
     return "VET: R\$ 0,00";
   }
 
-  void _showNewOptionDialog({required bool isCurrency}) {
-    final TextEditingController newOptionController = TextEditingController();
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.cardBackground,
-        title: Text(isCurrency ? "Nova Moeda" : "Nova Origem", style: const TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: newOptionController,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: isCurrency ? "Ex: Peso Argentino" : "Ex: Nomad",
-            hintStyle: const TextStyle(color: Colors.white70),
-            enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.silverBorder)),
-            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.moneyGreen)),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() {
-                if (isCurrency) {
-                  _selectedCurrency = _currencies.first;
-                } else {
-                  _selectedOrigin = _origins.first;
-                }
-              });
-              Navigator.pop(ctx);
-            },
-            child: const Text("Cancelar", style: TextStyle(color: Colors.white70)),
-          ),
-          TextButton(
-            onPressed: () {
-              if (newOptionController.text.trim().isNotEmpty) {
-                final newValue = newOptionController.text.trim();
-                setState(() {
-                  if (isCurrency) {
-                    _currencies.insert(_currencies.length - 1, newValue);
-                    _selectedCurrency = newValue;
-                  } else {
-                    _origins.insert(_origins.length - 1, newValue);
-                    _selectedOrigin = newValue;
-                  }
-                });
-              } else {
-                setState(() {
-                  if (isCurrency) {
-                    _selectedCurrency = _currencies.first;
-                  } else {
-                    _selectedOrigin = _origins.first;
-                  }
-                });
-              }
-              Navigator.pop(ctx);
-            },
-            child: const Text("Adicionar", style: TextStyle(color: AppColors.moneyGreen, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildTextField({
     required String hint, 
@@ -293,9 +231,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                         style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w300),
                         isExpanded: true,
                         onChanged: (String? newValue) {
-                          if (newValue == 'Nova') {
-                            _showNewOptionDialog(isCurrency: true);
-                          } else if (newValue != null) {
+                          if (newValue != null) {
                             setState(() => _selectedCurrency = newValue);
                           }
                         },
@@ -345,9 +281,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w300),
                   isExpanded: true,
                   onChanged: (String? newValue) {
-                    if (newValue == 'Nova') {
-                      _showNewOptionDialog(isCurrency: false);
-                    } else if (newValue != null) {
+                    if (newValue != null) {
                       setState(() => _selectedOrigin = newValue);
                     }
                   },

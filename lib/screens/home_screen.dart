@@ -81,7 +81,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   User? _currentUser;
   List<Trip>? _trips;
-  Map<int, double> _tripAmounts = {};
+  Map<String, double> _tripAmounts = {};
   double _totalBalanceBrl = 0.0;
   bool _isLoading = true;
   
@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
     
     // Calcula o valor total (BRL) para cada viagem somando os gastos
     final expenseDAO = ExpenseDAO();
-    Map<int, double> amounts = {};
+    Map<String, double> amounts = {};
     for (var trip in dbTrips) {
       final expenses = await expenseDAO.getExpensesByTrip(trip.id!);
       double total = 0.0;

@@ -1,6 +1,6 @@
 class Trip {
-  final int? id;
-  final int userId;
+  final String? id;
+  final String userId;
   final String title;
   final String startDate;
   final String? endDate;
@@ -28,8 +28,8 @@ class Trip {
 
   factory Trip.fromMap(Map<String, dynamic> map) {
     return Trip(
-      id: map['id'],
-      userId: map['user_id'],
+      id: map['id']?.toString(),
+      userId: map['user_id']?.toString() ?? '',
       title: map['title'],
       startDate: map['start_date'],
       endDate: map['end_date'],

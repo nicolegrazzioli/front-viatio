@@ -31,7 +31,7 @@ class UserDAO {
      return result;
   }
 
-  Future<int> deleteUser(int id) async {
+  Future<int> deleteUser(String id) async {
      final db = await AppDatabase().database;
      final result = await db.delete(
        table,

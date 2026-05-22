@@ -1,14 +1,16 @@
 class User {
-  final int? id;
+  final String? id;
   final String name;
   final String email;
   final String password;
+  final String? profileImage;
 
   User({
    this.id,
    required this.name,
    required this.email,
    required this.password,
+   this.profileImage,
 });
 
   //chave, valor - chama user.toMap
@@ -19,16 +21,18 @@ class User {
       'name': name,
       'email': email,
       'password': password,
+      'profile_image': profileImage,
     };
   }
 
   //receb do banco
   factory /*metodo de criaçao de objetos*/ User.fromMap(Map<String, dynamic> map) {
     return User(
-      id: map['id'],
+      id: map['id']?.toString(),
       name: map['name'],
       email: map['email'],
       password: map['password'],
+      profileImage: map['profile_image'],
     );
   }
 

@@ -1,6 +1,6 @@
 class Expense {
-  final int? id;
-  final int tripId;
+  final String? id;
+  final String tripId;
   final String title;
   final double amount;
   final String currency;
@@ -46,8 +46,8 @@ class Expense {
 
   factory Expense.fromMap(Map<String, dynamic> map) {
     return Expense(
-      id: map['id'],
-      tripId: map['trip_id'],
+      id: map['id']?.toString(),
+      tripId: map['trip_id']?.toString() ?? '',
       title: map['title'],
       amount: map['amount'],
       currency: map['currency'],

@@ -1,41 +1,76 @@
 import 'dart:convert';
 import '../models/wallet.dart';
 import '../api/api_client.dart';
+import '../database/me_app_database.dart';
 
 class WalletDAO {
   Future<int> insertWallet(Wallet wallet) async {
-    return 0; // Gerenciado automaticamente pelo backend
+    final db = await AppDatabase().database;
+    return await db.insert('wallets', wallet.toMap());
   }
 
-  Future<List<Wallet>> getWalletsByUser(int userId) async {
+  Future<List<Wallet>> getWalletsByUser(String userId) async {
+    final db = await AppDatabase().database;
+
     try {
       final response = await ApiClient.get('/wallets');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-        return data.map((e) {
-          return Wallet(
+        
+        await db.delete('wallets', where: 'user_id = ?', whereArgs: [userId]);
+
+        for (var e in data) {
+          final wallet = Wallet(
             userId: userId,
             currency: e['currency'],
             balance: e['balance']?.toDouble() ?? 0.0,
             averageVet: e['averageVet']?.toDouble() ?? 0.0,
           );
-        }).toList();
+          await db.insert('wallets', wallet.toMap());
+        }
       }
     } catch (e) {
-      print("Erro ao buscar carteiras na API: $e");
+      print("Offline: Buscando carteiras locais do SQLite. Erro API: $e");
     }
-    return [];
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'wallets',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+
+    return List.generate(maps.length, (i) => Wallet.fromMap(maps[i]));
   }
 
-  Future<Wallet?> getWallet(int userId, String currency) async {
-    return null; // Apenas usado internamente, backend cuida
+  Future<Wallet?> getWallet(String userId, String currency) async {
+    final db = await AppDatabase().database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'wallets',
+      where: 'user_id = ? AND currency = ?',
+      whereArgs: [userId, currency],
+    );
+    if (maps.isNotEmpty) {
+      return Wallet.fromMap(maps.first);
+    }
+    return null;
   }
 
   Future<int> updateWallet(Wallet wallet) async {
-    return 1; // Gerenciado pelo backend
+    final db = await AppDatabase().database;
+    return await db.update(
+      'wallets',
+      wallet.toMap(),
+      where: 'user_id = ? AND currency = ?',
+      whereArgs: [wallet.userId, wallet.currency],
+    );
   }
 
-  Future<int> deleteWallet(int userId, String currency) async {
-    return 1; // Gerenciado pelo backend
+  Future<int> deleteWallet(String userId, String currency) async {
+    final db = await AppDatabase().database;
+    return await db.delete(
+      'wallets',
+      where: 'user_id = ? AND currency = ?',
+      whereArgs: [userId, currency],
+    );
   }
 }

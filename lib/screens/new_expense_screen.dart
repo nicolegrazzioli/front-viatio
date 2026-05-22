@@ -9,7 +9,7 @@ import '../core/dao/wallet_dao.dart';
 import '../core/authentication/auth_service.dart';
 
 class NewExpenseScreen extends StatefulWidget {
-  final int tripId;
+  final String tripId;
   final String tripTitle;
   final Expense? expense;
 
@@ -26,8 +26,8 @@ class NewExpenseScreen extends StatefulWidget {
 }
 
 class _NewExpenseScreenState extends State<NewExpenseScreen> {
-  String _selectedCurrency = 'Reais';
-  final List<String> _currencies = ['Reais', 'Euro', 'Dólar'];
+  String _selectedCurrency = 'BRL';
+  final List<String> _currencies = ['BRL', 'USD', 'EUR'];
   List<Wallet>? _wallets;
   
   DateTime? _selectedDate = DateTime.now();
@@ -74,11 +74,6 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
       if (mounted) {
         setState(() {
           _wallets = wallets;
-          for (var w in wallets) {
-            if (!_currencies.contains(w.currency)) {
-              _currencies.add(w.currency);
-            }
-          }
         });
         _updateExchangeRate();
       }
@@ -87,7 +82,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
 
   void _updateExchangeRate() {
     if (_useAverageCost && _wallets != null) {
-      if (_selectedCurrency == 'Reais') {
+      if (_selectedCurrency == 'BRL') {
         _exchangeRateController.text = '1.0';
       } else {
         final wallet = _wallets!.cast<Wallet?>().firstWhere(
@@ -271,58 +266,32 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Foto e Data
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 45,
-                    decoration: BoxDecoration(
-                      color: AppColors.darkBackground,
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: AppColors.silverBorder),
-                    ),
-                    child: TextButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.upload, color: Colors.white70, size: 20),
-                      label: const Text("Foto", style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w300)),
-                      style: TextButton.styleFrom(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                      ),
-                    ),
-                  ),
+            // Data
+            Container(
+              height: 45,
+              decoration: BoxDecoration(
+                color: AppColors.darkBackground,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: AppColors.silverBorder),
+              ),
+              child: TextButton.icon(
+                onPressed: () => _selectDate(context),
+                icon: const Icon(Icons.calendar_today, color: Colors.white70, size: 20),
+                label: Text(
+                  _selectedDate == null 
+                    ? "Data" 
+                    : "${_selectedDate!.day.toString().padLeft(2, '0')}/${_selectedDate!.month.toString().padLeft(2, '0')}/${_selectedDate!.year}", 
+                  style: TextStyle(
+                    color: _selectedDate == null ? Colors.white70 : Colors.white, 
+                    fontSize: 16, 
+                    fontWeight: FontWeight.w300
+                  )
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Container(
-                    height: 45,
-                    decoration: BoxDecoration(
-                      color: AppColors.darkBackground,
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: AppColors.silverBorder),
-                    ),
-                    child: TextButton.icon(
-                      onPressed: () => _selectDate(context),
-                      icon: const Icon(Icons.calendar_today, color: Colors.white70, size: 20),
-                      label: Text(
-                        _selectedDate == null 
-                          ? "Data" 
-                          : "${_selectedDate!.day.toString().padLeft(2, '0')}/${_selectedDate!.month.toString().padLeft(2, '0')}/${_selectedDate!.year}", 
-                        style: TextStyle(
-                          color: _selectedDate == null ? Colors.white70 : Colors.white, 
-                          fontSize: 16, 
-                          fontWeight: FontWeight.w300
-                        )
-                      ),
-                      style: TextButton.styleFrom(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                      ),
-                    ),
-                  ),
+                style: TextButton.styleFrom(
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
-              ],
+              ),
             ),
             const SizedBox(height: 24),
 
