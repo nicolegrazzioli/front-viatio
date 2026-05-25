@@ -32,6 +32,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
   
   DateTime? _selectedDate = DateTime.now();
   bool _useAverageCost = true;
+  bool _hasCurrencyVet = true;
   String? _selectedCategory;
   
   final List<String> _categories = [
@@ -44,9 +45,12 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
   final TextEditingController _exchangeRateController = TextEditingController(text: '1.0');
   final TextEditingController _descriptionController = TextEditingController();
 
+  bool _willBeNegative = false;
+
   @override
   void initState() {
     super.initState();
+    _amountController.addListener(_checkNegativeBalance);
     if (widget.expense != null) {
       final data = widget.expense!;
       _titleController.text = data.title;
@@ -67,13 +71,46 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _wallets = context.read<WalletProvider>().wallets;
       _updateExchangeRate();
+      _checkNegativeBalance();
     });
   }
 
+  @override
+  void dispose() {
+    _amountController.removeListener(_checkNegativeBalance);
+    _titleController.dispose();
+    _amountController.dispose();
+    _exchangeRateController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _checkNegativeBalance() {
+    if (_wallets == null) return;
+    
+    final currentWallet = _wallets!.firstWhere(
+      (w) => w.currency == _selectedCurrency, 
+      orElse: () => Wallet(userId: '0', currency: _selectedCurrency, balance: 0.0, averageVet: 0.0)
+    );
+
+    final amountText = _amountController.text.replaceAll(',', '.');
+    final amount = double.tryParse(amountText) ?? 0.0;
+
+    final willBeNegative = (currentWallet.balance - amount) < 0;
+    if (_willBeNegative != willBeNegative) {
+      setState(() {
+        _willBeNegative = willBeNegative;
+      });
+    }
+  }
+
   Future<void> _updateExchangeRate() async {
-    if (_useAverageCost && _wallets != null) {
+    if (_wallets != null) {
       if (_selectedCurrency == 'BRL') {
-        if (mounted) setState(() => _exchangeRateController.text = '1.0');
+        if (mounted) setState(() {
+          _hasCurrencyVet = true;
+          if (_useAverageCost) _exchangeRateController.text = '1.0';
+        });
       } else {
         final authProvider = context.read<AuthProvider>();
         final userId = authProvider.currentUser?.id;
@@ -81,7 +118,13 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
           final tripVet = await ExpenseDAO().getTripVet(userId, widget.trip.id!, _selectedCurrency);
           if (mounted) {
             setState(() {
-              _exchangeRateController.text = tripVet.toStringAsFixed(2);
+              _hasCurrencyVet = tripVet > 0.0;
+              if (!_hasCurrencyVet) {
+                _useAverageCost = false;
+              }
+              if (_useAverageCost) {
+                _exchangeRateController.text = tripVet.toStringAsFixed(2);
+              }
             });
           }
         }
@@ -271,6 +314,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                               _selectedCurrency = newValue;
                             });
                             _updateExchangeRate();
+                            _checkNegativeBalance();
                           }
                         },
                         items: _currencies.map<DropdownMenuItem<String>>((String value) {
@@ -285,6 +329,14 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                 ),
               ],
             ),
+            if (_willBeNegative)
+              const Padding(
+                padding: EdgeInsets.only(top: 8, left: 8),
+                child: Text(
+                  "⚠️ Este gasto deixará seu saldo negativo.",
+                  style: TextStyle(color: Colors.orange, fontSize: 12),
+                ),
+              ),
             const SizedBox(height: 24),
 
             // Data
@@ -330,22 +382,33 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                 Expanded(
                   child: Row(
                     children: [
-                      const Expanded(
-                        child: Text(
-                          "Custo médio",
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w300),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Custo médio",
+                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w300),
+                            ),
+                            if (!_hasCurrencyVet)
+                              const Text(
+                                "Sem saldo",
+                                style: TextStyle(color: Colors.orange, fontSize: 11),
+                              ),
+                          ],
                         ),
                       ),
                       Switch(
                         value: _useAverageCost,
-                        onChanged: (val) {
+                        onChanged: _hasCurrencyVet ? (val) {
                           setState(() {
                             _useAverageCost = val;
                           });
                           if (val) {
                             _updateExchangeRate();
                           }
-                        },
+                        } : null,
                         activeColor: AppColors.moneyGreen,
                         activeTrackColor: AppColors.moneyGreen.withOpacity(0.5),
                       ),

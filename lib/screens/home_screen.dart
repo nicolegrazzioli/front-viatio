@@ -75,8 +75,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
   String _sortOption = 'Recentes (Padrão)';
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -182,7 +189,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.moneyGreen))
           : SafeArea(
-              child: Column(
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                child: Column(
                 children: [
                   // --- HEADER ---
                   Padding(
@@ -273,34 +282,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   // --- LISTA DE VIAGENS ---
-                  Expanded(
-                    child: sortedTrips.isEmpty
-                        ? const Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 40.0),
-                              child: Text(
-                                "Nenhuma viagem encontrada.\nCrie uma nova clicando no botão +",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white54, 
-                                  fontSize: 18, 
-                                  height: 1.5,
-                                ),
+                  sortedTrips.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 40.0),
+                          child: Center(
+                            child: Text(
+                              "Nenhuma viagem encontrada.\nCrie uma nova clicando no botão +",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white54, 
+                                fontSize: 18, 
+                                height: 1.5,
                               ),
                             ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            itemCount: sortedTrips.length,
-                            itemBuilder: (context, index) {
-                              final trip = sortedTrips[index];
-                              return _buildTripCard(context, trip, tripProvider.tripAmounts[trip.id!] ?? 0.0);
-                            },
                           ),
-                  ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          itemCount: sortedTrips.length,
+                          itemBuilder: (context, index) {
+                            final trip = sortedTrips[index];
+                            return _buildTripCard(context, trip, tripProvider.tripAmounts[trip.id!] ?? 0.0);
+                          },
+                        ),
                 ],
               ),
             ),
+          ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: CustomFAB(
         onPressed: () {
           if (user == null || user.id == null) return;

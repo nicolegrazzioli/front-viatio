@@ -33,6 +33,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
   String _searchQuery = '';
   String _sortOption = 'Recentes (Padrão)';
   String? _filterCategory;
+  final ScrollController _scrollController = ScrollController();
 
   DateTime _parseDate(String dateStr) {
     try {
@@ -239,9 +240,11 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
             // Valor Total Dinâmico
             Text(
               "R\$ ${_totalAmount.toStringAsFixed(2)}",
@@ -298,47 +301,48 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             ),
             const SizedBox(height: 16),
             
-            Expanded(
-              child: _filteredAndSortedExpenses.isEmpty
-                  ? const Center(child: Text("Nenhum gasto encontrado.", style: TextStyle(color: Colors.white54, fontSize: 16)))
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      itemCount: _filteredAndSortedExpenses.length,
-                      itemBuilder: (context, index) {
-                        final expense = _filteredAndSortedExpenses[index];
-                        final cat = categories.firstWhere((c) => c.name == expense.category, orElse: () => categories[0]);
-                        final currencySymbol = (expense.currency == 'EUR' || expense.currency == 'Euro') 
-                            ? '€' 
-                            : ((expense.currency == 'USD' || expense.currency == 'Dólar') ? '\$' : 'R\$');
-                        
-                        return Column(
-                          children: [
-                            if (index == 0 || _filteredAndSortedExpenses[index].date != _filteredAndSortedExpenses[index-1].date)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 16, bottom: 8),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    expense.date,
-                                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                                  ),
+            _filteredAndSortedExpenses.isEmpty
+                ? const Padding(padding: EdgeInsets.only(top: 40), child: Center(child: Text("Nenhum gasto encontrado.", style: TextStyle(color: Colors.white54, fontSize: 16))))
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    itemCount: _filteredAndSortedExpenses.length,
+                    itemBuilder: (context, index) {
+                      final expense = _filteredAndSortedExpenses[index];
+                      final cat = categories.firstWhere((c) => c.name == expense.category, orElse: () => categories[0]);
+                      final currencySymbol = (expense.currency == 'EUR' || expense.currency == 'Euro') 
+                          ? '€' 
+                          : ((expense.currency == 'USD' || expense.currency == 'Dólar') ? '\$' : 'R\$');
+                      
+                      return Column(
+                        children: [
+                          if (index == 0 || _filteredAndSortedExpenses[index].date != _filteredAndSortedExpenses[index-1].date)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16, bottom: 8),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  expense.date,
+                                  style: const TextStyle(color: Colors.white, fontSize: 16),
                                 ),
                               ),
-                            _buildExpenseItem(expense, cat, "$currencySymbol ${expense.amount.toStringAsFixed(2)}", "R\$ ${expense.amountBrl.toStringAsFixed(2)}"),
-                            const Divider(color: AppColors.silverBorder, height: 1),
-                            if (index == _filteredAndSortedExpenses.length - 1)
-                              const SizedBox(height: 80), // Padding extra no final
-                          ],
-                        );
-                      },
-                    ),
-            ),
+                            ),
+                          _buildExpenseItem(expense, cat, "$currencySymbol ${expense.amount.toStringAsFixed(2)}", "R\$ ${expense.amountBrl.toStringAsFixed(2)}"),
+                          const Divider(color: AppColors.silverBorder, height: 1),
+                          if (index == _filteredAndSortedExpenses.length - 1)
+                            const SizedBox(height: 80), // Padding extra no final
+                        ],
+                      );
+                    },
+                  ),
           ],
         ),
       ),
+    ),
       
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: CustomFAB(
-        rightPadding: 32.0,
         onPressed: () async {
           await Navigator.push(
             context,

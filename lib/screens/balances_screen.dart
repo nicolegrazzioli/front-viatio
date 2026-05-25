@@ -19,6 +19,7 @@ class BalancesScreen extends StatefulWidget {
 
 class _BalancesScreenState extends State<BalancesScreen> {
   final ScrollController _scrollController = ScrollController();
+  final ScrollController _mainScrollController = ScrollController();
 
   String _searchQuery = '';
   String _sortOption = 'Recentes (Padrão)';
@@ -77,6 +78,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _mainScrollController.dispose();
     super.dispose();
   }
 
@@ -358,16 +360,6 @@ class _BalancesScreenState extends State<BalancesScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          "Saldos",
-          style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.normal),
-        ),
-        centerTitle: true,
-      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -382,7 +374,17 @@ class _BalancesScreenState extends State<BalancesScreen> {
             ),
             const SizedBox(height: 24),
             
-            // Carrossel de Moedas Infinito
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _mainScrollController,
+                child: Column(
+                  children: [
+                    const Text(
+                      "Saldos",
+                      style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.normal),
+                    ),
+                    const SizedBox(height: 24),
+                    // Carrossel de Moedas Infinito
             if (wallets == null || wallets.isEmpty)
               const SizedBox(
                 height: 160,
@@ -490,40 +492,45 @@ class _BalancesScreenState extends State<BalancesScreen> {
             const SizedBox(height: 24),
             
             // Lista de Compras de Moeda
-            Expanded(
-              child: sortedTransactions.isEmpty
-                ? const Center(child: Text("Nenhuma compra encontrada.", style: TextStyle(color: Colors.white54)))
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    itemCount: sortedTransactions.length,
-                    itemBuilder: (context, index) {
-                      final transaction = sortedTransactions[index];
-                      final color = _getCurrencyColor(transaction.currency);
-                      
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (index == 0 || sortedTransactions[index].date != sortedTransactions[index-1].date)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 24, bottom: 8),
-                              child: Text(
-                                transaction.date,
-                                style: const TextStyle(color: Colors.white, fontSize: 16),
-                              ),
+            sortedTransactions.isEmpty
+              ? const Padding(padding: EdgeInsets.only(top: 40), child: Center(child: Text("Nenhuma compra encontrada.", style: TextStyle(color: Colors.white54))))
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  itemCount: sortedTransactions.length,
+                  itemBuilder: (context, index) {
+                    final transaction = sortedTransactions[index];
+                    final color = _getCurrencyColor(transaction.currency);
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (index == 0 || sortedTransactions[index].date != sortedTransactions[index-1].date)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 24, bottom: 8),
+                            child: Text(
+                              transaction.date,
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
                             ),
-                          _buildPurchaseItem(context, transaction, color),
-                          const Divider(color: AppColors.silverBorder, height: 1),
-                          if (index == sortedTransactions.length - 1)
-                            const SizedBox(height: 80),
-                        ],
-                      );
-                    },
-                  ),
+                          ),
+                        _buildPurchaseItem(context, transaction, color),
+                        const Divider(color: AppColors.silverBorder, height: 1),
+                        if (index == sortedTransactions.length - 1)
+                          const SizedBox(height: 80),
+                      ],
+                    );
+                  },
+                ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
       
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: CustomFAB(
         onPressed: () {
           if (user == null) return;
