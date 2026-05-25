@@ -342,7 +342,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
         onPressed: () async {
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => NewExpenseScreen(tripId: widget.trip.id!, tripTitle: widget.trip.title)),
+            MaterialPageRoute(builder: (context) => NewExpenseScreen(trip: widget.trip)),
           );
           _loadExpenses(fetchApi: false); // Atualiza a lista e totais
         },
@@ -412,8 +412,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => NewExpenseScreen(
-                tripId: widget.trip.id!,
-                tripTitle: widget.trip.title,
+                trip: widget.trip,
                 expense: expense,
               ),
             ),
@@ -484,6 +483,12 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                   await context.read<TripProvider>().removeTrip(widget.trip.id!, user.id!);
                 }
                 if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Viagem excluída com sucesso!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
                   Navigator.pop(ctx); // Fechar dialog
                   Navigator.pop(context); // Voltar para a home
                 }

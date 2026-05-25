@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local VS Code launch configurations containing IPs/secrets
+.vscode/launch.json

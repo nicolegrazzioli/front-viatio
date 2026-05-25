@@ -18,10 +18,13 @@ class WalletDAO {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         
+        final List<String> apiCurrencies = [];
         for (var e in data) {
+          final currency = e['currency'];
+          apiCurrencies.add(currency);
           final wallet = Wallet(
             userId: userId,
-            currency: e['currency'],
+            currency: currency,
             balance: e['balance']?.toDouble() ?? 0.0,
             averageVet: e['averageVet']?.toDouble() ?? 0.0,
           );
@@ -30,6 +33,13 @@ class WalletDAO {
             {...wallet.toMap(), 'is_synced': 1},
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
+        }
+        
+        final localSynced = await db.query('wallets', where: 'user_id = ? AND is_synced = ?', whereArgs: [userId, 1]);
+        for (var local in localSynced) {
+          if (!apiCurrencies.contains(local['currency'])) {
+            await db.delete('wallets', where: 'user_id = ? AND currency = ?', whereArgs: [userId, local['currency']]);
+          }
         }
       }
     } catch (e) {

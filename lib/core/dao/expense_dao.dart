@@ -226,15 +226,9 @@ class ExpenseDAO {
     
     if (totalBought > 0) {
       return totalBrl / totalBought;
-    } else {
-      double globalBought = 0.0;
-      double globalBrl = 0.0;
-      for (var tx in txs) {
-        globalBought += (tx['amount'] as num?)?.toDouble() ?? 0.0;
-        globalBrl += (tx['amount_brl'] as num?)?.toDouble() ?? 0.0;
-      }
-      return globalBought > 0 ? globalBrl / globalBought : 1.0;
     }
+    
+    return 1.0;
   }
 
   Future<void> updateDynamicVetForTrips(String userId, String currency) async {
@@ -280,13 +274,7 @@ class ExpenseDAO {
       if (totalBought > 0) {
         tripVet = totalBrl / totalBought;
       } else {
-        double globalBought = 0.0;
-        double globalBrl = 0.0;
-        for (var tx in parsedTxs) {
-          globalBought += tx['amount'] as double;
-          globalBrl += tx['amount_brl'] as double;
-        }
-        if (globalBought > 0) tripVet = globalBrl / globalBought;
+        tripVet = 1.0;
       }
       
       if (tripVet > 0) {

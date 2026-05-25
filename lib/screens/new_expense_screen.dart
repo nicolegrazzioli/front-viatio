@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../core/models/expense.dart';
+import '../core/models/trip.dart';
 import '../core/models/wallet.dart';
 import '../core/models/user.dart';
 import '../core/dao/expense_dao.dart';
@@ -10,14 +11,12 @@ import '../core/providers/wallet_provider.dart';
 import '../core/providers/trip_provider.dart';
 
 class NewExpenseScreen extends StatefulWidget {
-  final String tripId;
-  final String tripTitle;
+  final Trip trip;
   final Expense? expense;
 
   const NewExpenseScreen({
     super.key, 
-    required this.tripId,
-    required this.tripTitle,
+    required this.trip,
     this.expense,
   });
 
@@ -79,7 +78,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
         final authProvider = context.read<AuthProvider>();
         final userId = authProvider.currentUser?.id;
         if (userId != null) {
-          final tripVet = await ExpenseDAO().getTripVet(userId, widget.tripId, _selectedCurrency);
+          final tripVet = await ExpenseDAO().getTripVet(userId, widget.trip.id!, _selectedCurrency);
           if (mounted) {
             setState(() {
               _exchangeRateController.text = tripVet.toStringAsFixed(2);
@@ -115,6 +114,30 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
         _selectedDate = picked;
       });
     }
+  }
+
+  bool _isDateOutsideTrip() {
+    if (_selectedDate == null) return false;
+    
+    DateTime? parseDate(String? d) {
+      if (d == null || d.isEmpty) return null;
+      try {
+        final parts = d.split('/');
+        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      } catch (e) {
+        return null;
+      }
+    }
+
+    final start = parseDate(widget.trip.startDate);
+    final end = parseDate(widget.trip.endDate);
+
+    final current = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
+
+    if (start != null && current.isBefore(start)) return true;
+    if (end != null && current.isAfter(end)) return true;
+
+    return false;
   }
 
   Widget _buildTextField({
@@ -164,7 +187,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
         ),
         title: Column(
           children: [
-            Text(widget.tripTitle, style: const TextStyle(color: AppColors.offWhite, fontSize: 24, fontWeight: FontWeight.w500, fontFamily: 'Inter')),
+            Text(widget.trip.title, style: const TextStyle(color: AppColors.offWhite, fontSize: 24, fontWeight: FontWeight.w500, fontFamily: 'Inter')),
             Text(widget.expense != null ? "editar gasto" : "novo gasto", style: const TextStyle(color: AppColors.offWhite, fontSize: 20, fontWeight: FontWeight.w500, fontFamily: 'Inter')),
           ],
         ),
@@ -291,6 +314,14 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                 ),
               ),
             ),
+            if (_isDateOutsideTrip())
+              const Padding(
+                padding: EdgeInsets.only(top: 8, left: 16),
+                child: Text(
+                  "⚠️ Atenção: Este gasto está fora do período da viagem.",
+                  style: TextStyle(color: Colors.orange, fontSize: 12),
+                ),
+              ),
             const SizedBox(height: 24),
 
             // Custo Médio e Câmbio
@@ -410,7 +441,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
 
                     final newExpense = Expense(
                       id: widget.expense?.id,
-                      tripId: widget.tripId,
+                      tripId: widget.trip.id!,
                       title: _titleController.text.trim(),
                       amount: amount,
                       currency: _selectedCurrency,
