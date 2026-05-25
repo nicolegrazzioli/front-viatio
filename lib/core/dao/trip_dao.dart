@@ -4,24 +4,27 @@ import '../models/trip.dart';
 import '../api/api_client.dart';
 import '../database/me_app_database.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:intl/intl.dart';
 
 class TripDAO {
   final _uuid = const Uuid();
 
   String _toApiDate(String date) {
-    final parts = date.split('/');
-    if (parts.length == 3) {
-      return "${parts[2]}-${parts[1]}-${parts[0]}";
+    try {
+      final d = DateFormat('dd/MM/yyyy').parse(date);
+      return DateFormat('yyyy-MM-dd').format(d);
+    } catch (e) {
+      return date;
     }
-    return date;
   }
 
   String _fromApiDate(String date) {
-    final parts = date.split('-');
-    if (parts.length == 3) {
-      return "${parts[2]}/${parts[1]}/${parts[0]}";
+    try {
+      final d = DateFormat('yyyy-MM-dd').parse(date);
+      return DateFormat('dd/MM/yyyy').format(d);
+    } catch (e) {
+      return date;
     }
-    return date;
   }
 
   Future<String> insertTrip(Trip trip) async {
@@ -71,8 +74,12 @@ class TripDAO {
     final db = await AppDatabase().database;
     final unsynced = await db.query('trips', where: 'is_synced = ?', whereArgs: [0]);
     for (var map in unsynced) {
-      final trip = Trip.fromMap(map);
-      _syncInsertTrip(trip); // Tenta reenviar
+      if (map['is_deleted'] == 1) {
+        _syncDeleteTrip(map['id'] as String);
+      } else {
+        final trip = Trip.fromMap(map);
+        _syncInsertTrip(trip);
+      }
     }
   }
 
@@ -127,10 +134,10 @@ class TripDAO {
     }
     }
 
-    // 2. Retornar os dados do banco local
+    // 2. Retornar os dados do banco local que não estão marcados como deletados
     final List<Map<String, dynamic>> maps = await db.query(
       'trips',
-      where: 'user_id = ?',
+      where: 'user_id = ? AND is_deleted = 0',
       whereArgs: [userId],
     );
 
@@ -138,18 +145,39 @@ class TripDAO {
   }
 
   Future<int> updateTrip(Trip trip) async {
-    return 1;
+    final db = await AppDatabase().database;
+    
+    // Atualiza localmente e marca como não sincronizado
+    int rows = await db.update(
+      'trips',
+      {...trip.toMap(), 'is_synced': 0},
+      where: 'id = ?',
+      whereArgs: [trip.id],
+    );
+
+    // Tenta enviar a atualização para a API
+    _syncInsertTrip(trip);
+    
+    return rows;
   }
 
   Future<int> deleteTrip(String id) async {
     final db = await AppDatabase().database;
-    await db.delete('trips', where: 'id = ?', whereArgs: [id]);
+    // Marca como deletado localmente
+    await db.update('trips', {'is_deleted': 1, 'is_synced': 0}, where: 'id = ?', whereArgs: [id]);
 
+    _syncDeleteTrip(id);
+    return 1;
+  }
+
+  Future<void> _syncDeleteTrip(String id) async {
     try {
       await ApiClient.delete('/trips/$id');
+      // Se sucesso, deleta de vez do SQLite
+      final db = await AppDatabase().database;
+      await db.delete('trips', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
-      print("Offline: Falha ao deletar viagem na API. Erro: $e");
+      print("Offline: Deleção de viagem agendada. Erro API: $e");
     }
-    return 1;
   }
 }

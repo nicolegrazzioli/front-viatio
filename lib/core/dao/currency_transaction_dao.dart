@@ -4,24 +4,27 @@ import '../models/currency_transaction.dart';
 import '../api/api_client.dart';
 import '../database/me_app_database.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:intl/intl.dart';
 
 class CurrencyTransactionDAO {
   final _uuid = const Uuid();
 
   String _toApiDate(String date) {
-    final parts = date.split('/');
-    if (parts.length == 3) {
-      return "${parts[2]}-${parts[1]}-${parts[0]}";
+    try {
+      final d = DateFormat('dd/MM/yyyy').parse(date);
+      return DateFormat('yyyy-MM-dd').format(d);
+    } catch (e) {
+      return date;
     }
-    return date;
   }
 
   String _fromApiDate(String date) {
-    final parts = date.split('-');
-    if (parts.length == 3) {
-      return "${parts[2]}/${parts[1]}/${parts[0]}";
+    try {
+      final d = DateFormat('yyyy-MM-dd').parse(date);
+      return DateFormat('dd/MM/yyyy').format(d);
+    } catch (e) {
+      return date;
     }
-    return date;
   }
 
   Future<String> insertTransaction(CurrencyTransaction transaction) async {
@@ -76,8 +79,12 @@ class CurrencyTransactionDAO {
     final db = await AppDatabase().database;
     final unsynced = await db.query('currency_transactions', where: 'is_synced = ?', whereArgs: [0]);
     for (var map in unsynced) {
-      final transaction = CurrencyTransaction.fromMap(map);
-      _syncInsertTransaction(transaction);
+      if (map['is_deleted'] == 1) {
+        _syncDeleteTransaction(map['id'] as String);
+      } else {
+        final transaction = CurrencyTransaction.fromMap(map);
+        _syncInsertTransaction(transaction);
+      }
     }
   }
 
@@ -134,7 +141,7 @@ class CurrencyTransactionDAO {
 
     final List<Map<String, dynamic>> maps = await db.query(
       'currency_transactions',
-      where: 'user_id = ?',
+      where: 'user_id = ? AND is_deleted = 0',
       whereArgs: [userId],
     );
 
@@ -155,13 +162,19 @@ class CurrencyTransactionDAO {
 
   Future<int> deleteTransaction(String id) async {
     final db = await AppDatabase().database;
-    await db.delete('currency_transactions', where: 'id = ?', whereArgs: [id]);
+    await db.update('currency_transactions', {'is_deleted': 1, 'is_synced': 0}, where: 'id = ?', whereArgs: [id]);
 
+    _syncDeleteTransaction(id);
+    return 1;
+  }
+
+  Future<void> _syncDeleteTransaction(String id) async {
     try {
       await ApiClient.delete('/currency-transactions/$id');
+      final db = await AppDatabase().database;
+      await db.delete('currency_transactions', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
-      print("Offline: Falha ao deletar transação na API. Erro: $e");
+      print("Offline: Deleção de transação agendada. Erro API: $e");
     }
-    return 1;
   }
 }

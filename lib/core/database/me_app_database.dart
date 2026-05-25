@@ -28,7 +28,7 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
             CREATE TABLE users(
@@ -37,7 +37,8 @@ class AppDatabase {
               email TEXT,
               password TEXT,
               profile_image TEXT,
-              is_synced INTEGER DEFAULT 0
+              is_synced INTEGER DEFAULT 0,
+              is_deleted INTEGER DEFAULT 0
             )
             ''');
 
@@ -50,6 +51,7 @@ class AppDatabase {
               end_date TEXT,
               cover_type TEXT,
               is_synced INTEGER DEFAULT 0,
+              is_deleted INTEGER DEFAULT 0,
               FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             )
             ''');
@@ -69,6 +71,7 @@ class AppDatabase {
               description TEXT,
               photo_path TEXT,
               is_synced INTEGER DEFAULT 0,
+              is_deleted INTEGER DEFAULT 0,
               FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
             )
             ''');
@@ -86,6 +89,7 @@ class AppDatabase {
               description TEXT,
               photo_path TEXT,
               is_synced INTEGER DEFAULT 0,
+              is_deleted INTEGER DEFAULT 0,
               FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             )
             ''');
@@ -97,6 +101,7 @@ class AppDatabase {
               balance REAL,
               average_vet REAL,
               is_synced INTEGER DEFAULT 0,
+              is_deleted INTEGER DEFAULT 0,
               PRIMARY KEY (user_id, currency),
               FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             )
@@ -109,6 +114,13 @@ class AppDatabase {
           await db.execute("ALTER TABLE expenses ADD COLUMN is_synced INTEGER DEFAULT 0");
           await db.execute("ALTER TABLE currency_transactions ADD COLUMN is_synced INTEGER DEFAULT 0");
           await db.execute("ALTER TABLE wallets ADD COLUMN is_synced INTEGER DEFAULT 0");
+        }
+        if (oldVersion < 3) {
+          await db.execute("ALTER TABLE users ADD COLUMN is_deleted INTEGER DEFAULT 0");
+          await db.execute("ALTER TABLE trips ADD COLUMN is_deleted INTEGER DEFAULT 0");
+          await db.execute("ALTER TABLE expenses ADD COLUMN is_deleted INTEGER DEFAULT 0");
+          await db.execute("ALTER TABLE currency_transactions ADD COLUMN is_deleted INTEGER DEFAULT 0");
+          await db.execute("ALTER TABLE wallets ADD COLUMN is_deleted INTEGER DEFAULT 0");
         }
       },
       onOpen: (db) async {

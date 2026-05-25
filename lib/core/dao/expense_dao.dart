@@ -4,24 +4,27 @@ import '../models/expense.dart';
 import '../api/api_client.dart';
 import '../database/me_app_database.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:intl/intl.dart';
 
 class ExpenseDAO {
   final _uuid = const Uuid();
 
   String _toApiDate(String date) {
-    final parts = date.split('/');
-    if (parts.length == 3) {
-      return "${parts[2]}-${parts[1]}-${parts[0]}";
+    try {
+      final d = DateFormat('dd/MM/yyyy').parse(date);
+      return DateFormat('yyyy-MM-dd').format(d);
+    } catch (e) {
+      return date;
     }
-    return date;
   }
 
   String _fromApiDate(String date) {
-    final parts = date.split('-');
-    if (parts.length == 3) {
-      return "${parts[2]}/${parts[1]}/${parts[0]}";
+    try {
+      final d = DateFormat('yyyy-MM-dd').parse(date);
+      return DateFormat('dd/MM/yyyy').format(d);
+    } catch (e) {
+      return date;
     }
-    return date;
   }
 
   Future<String> insertExpense(Expense expense) async {
@@ -83,8 +86,12 @@ class ExpenseDAO {
     final db = await AppDatabase().database;
     final unsynced = await db.query('expenses', where: 'is_synced = ?', whereArgs: [0]);
     for (var map in unsynced) {
-      final expense = Expense.fromMap(map);
-      _syncInsertExpense(expense);
+      if (map['is_deleted'] == 1) {
+        _syncDeleteExpense(map['id'] as String);
+      } else {
+        final expense = Expense.fromMap(map);
+        _syncInsertExpense(expense);
+      }
     }
   }
 
@@ -145,10 +152,10 @@ class ExpenseDAO {
     }
     }
 
-    // 2. Retornar os dados do banco local
+    // 2. Retornar os dados do banco local que não estão marcados como deletados
     final List<Map<String, dynamic>> maps = await db.query(
       'expenses',
-      where: 'trip_id = ?',
+      where: 'trip_id = ? AND is_deleted = 0',
       whereArgs: [tripId],
     );
 
@@ -170,13 +177,19 @@ class ExpenseDAO {
 
   Future<int> deleteExpense(String id) async {
     final db = await AppDatabase().database;
-    await db.delete('expenses', where: 'id = ?', whereArgs: [id]);
+    await db.update('expenses', {'is_deleted': 1, 'is_synced': 0}, where: 'id = ?', whereArgs: [id]);
 
+    _syncDeleteExpense(id);
+    return 1;
+  }
+
+  Future<void> _syncDeleteExpense(String id) async {
     try {
       await ApiClient.delete('/expenses/$id');
+      final db = await AppDatabase().database;
+      await db.delete('expenses', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
-      print("Offline: Falha ao deletar gasto na API. Erro: $e");
+      print("Offline: Deleção de gasto agendada. Erro API: $e");
     }
-    return 1;
   }
 }
