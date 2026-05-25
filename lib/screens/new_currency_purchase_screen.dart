@@ -5,6 +5,8 @@ import '../core/models/currency_transaction.dart';
 import '../core/models/wallet.dart';
 import '../core/dao/currency_transaction_dao.dart';
 import '../core/dao/wallet_dao.dart';
+import 'package:provider/provider.dart';
+import '../core/providers/wallet_provider.dart';
 
 class NewCurrencyPurchaseScreen extends StatefulWidget {
   final String userId;
@@ -147,27 +149,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                     TextButton(
                       onPressed: () async {
                         final transaction = widget.transaction!;
-                        await CurrencyTransactionDAO().deleteTransaction(transaction.id!);
-                        
-                        final walletDao = WalletDAO();
-                        final wallet = await walletDao.getWallet(transaction.userId, transaction.currency);
-                        if (wallet != null) {
-                          final newBalance = wallet.balance - transaction.amount;
-                          if (newBalance <= 0) {
-                            await walletDao.deleteWallet(transaction.userId, transaction.currency);
-                          } else {
-                            double totalBrlAntigo = wallet.balance * wallet.averageVet;
-                            double novoTotalBrl = totalBrlAntigo - transaction.amountBrl;
-                            double newVet = novoTotalBrl / newBalance;
-
-                            await walletDao.updateWallet(Wallet(
-                              userId: transaction.userId,
-                              currency: transaction.currency,
-                              balance: newBalance,
-                              averageVet: newVet,
-                            ));
-                          }
-                        }
+                        await context.read<WalletProvider>().removeTransaction(transaction);
                         if (mounted) {
                           Navigator.pop(ctx);
                           Navigator.pop(context);
@@ -372,57 +354,12 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                       description: _descriptionController.text.trim(),
                     );
                     
-                    final walletDao = WalletDAO();
-                    final transactionDao = CurrencyTransactionDAO();
+                    final walletProvider = context.read<WalletProvider>();
                     
                     if (widget.transaction != null) {
-                      // Estamos editando. Precisamos reverter o impacto da transaction antiga no wallet e somar a nova
-                      final oldAmount = widget.transaction!.amount;
-                      final oldBrl = widget.transaction!.amountBrl;
-                      
-                      await transactionDao.updateTransaction(transaction);
-                      
-                      final wallet = await walletDao.getWallet(widget.userId, _selectedCurrency);
-                      if (wallet != null) {
-                        double newBalance = (wallet.balance - oldAmount) + amount;
-                        // Para um VET puramente médio, a lógica real precisaria somar todos os BRL / todas as amounts.
-                        // Calculo simplificado para refletir a nova adição:
-                        // Descobre o BRL total antigo:
-                        double totalBrlAntigo = wallet.balance * wallet.averageVet;
-                        double novoTotalBrl = (totalBrlAntigo - oldBrl) + totalBRL;
-                        double newVet = newBalance > 0 ? (novoTotalBrl / newBalance) : 0;
-                        
-                        await walletDao.updateWallet(Wallet(
-                          userId: widget.userId,
-                          currency: _selectedCurrency,
-                          balance: newBalance,
-                          averageVet: newVet,
-                        ));
-                      }
+                      await walletProvider.editTransaction(transaction, widget.transaction!);
                     } else {
-                      await transactionDao.insertTransaction(transaction);
-                      
-                      final wallet = await walletDao.getWallet(widget.userId, _selectedCurrency);
-                      if (wallet != null) {
-                        double newBalance = wallet.balance + amount;
-                        double totalBrlAntigo = wallet.balance * wallet.averageVet;
-                        double novoTotalBrl = totalBrlAntigo + totalBRL;
-                        double newVet = novoTotalBrl / newBalance;
-                        
-                        await walletDao.updateWallet(Wallet(
-                          userId: widget.userId,
-                          currency: _selectedCurrency,
-                          balance: newBalance,
-                          averageVet: newVet,
-                        ));
-                      } else {
-                        await walletDao.insertWallet(Wallet(
-                          userId: widget.userId,
-                          currency: _selectedCurrency,
-                          balance: amount,
-                          averageVet: vet,
-                        ));
-                      }
+                      await walletProvider.addTransaction(transaction);
                     }
                     
                     if (mounted) Navigator.pop(context);

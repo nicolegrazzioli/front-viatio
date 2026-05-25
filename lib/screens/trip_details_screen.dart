@@ -14,6 +14,7 @@ import '../core/dao/expense_dao.dart';
 import 'package:provider/provider.dart';
 import '../core/providers/trip_provider.dart';
 import '../core/providers/auth_provider.dart';
+import '../core/providers/wallet_provider.dart';
 
 class TripDetailsScreen extends StatefulWidget {
   final Trip trip;
@@ -391,6 +392,8 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                   final user = context.read<AuthProvider>().currentUser;
                   if (user != null) {
                     await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);
+                    await context.read<WalletProvider>().recalculateWallet(user.id!, expense.currency);
+                    await context.read<WalletProvider>().loadWalletData(user.id!, fetchApi: false);
                   }
                   if (mounted) {
                     Navigator.pop(ctx, true);

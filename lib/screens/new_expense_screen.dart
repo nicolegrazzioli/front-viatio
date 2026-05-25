@@ -428,6 +428,16 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                     final user = context.read<AuthProvider>().currentUser;
                     if (user != null) {
                       await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);
+                      
+                      // Recalcula as carteiras para atualizar saldo e VET
+                      await context.read<WalletProvider>().recalculateWallet(user.id!, _selectedCurrency);
+                      await context.read<WalletProvider>().loadWalletData(user.id!, fetchApi: false);
+                      
+                      // Se estávamos editando e a moeda mudou, temos que recalcular a moeda antiga também!
+                      if (widget.expense != null && widget.expense!.currency != _selectedCurrency) {
+                        await context.read<WalletProvider>().recalculateWallet(user.id!, widget.expense!.currency);
+                        await context.read<WalletProvider>().loadWalletData(user.id!, fetchApi: false);
+                      }
                     }
 
                     if (mounted) Navigator.pop(context);

@@ -192,4 +192,13 @@ class ExpenseDAO {
       print("Offline: Deleção de gasto agendada. Erro API: $e");
     }
   }
+
+  Future<void> updateDynamicVet(String currency, double newVet) async {
+    final db = await AppDatabase().database;
+    await db.rawUpdate('''
+      UPDATE expenses 
+      SET exchange_rate = ?, amount_brl = amount * ?, is_synced = 0
+      WHERE currency = ? AND is_average_cost = 1 AND is_deleted = 0
+    ''', [newVet, newVet, currency]);
+  }
 }
