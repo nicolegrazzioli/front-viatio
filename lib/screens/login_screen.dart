@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:app_final/screens/home_screen.dart';
 import 'package:app_final/screens/register_screen.dart';
-import 'package:app_final/core/authentication/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../core/providers/auth_provider.dart';
 import '../core/theme/app_colors.dart';
 // statefull -- as coisas mudam de estado, ocupa mais espaço operacional
 
@@ -35,13 +36,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
-      final user = await AuthService().login(
+      final success = await context.read<AuthProvider>().login(
         _emailController.text.trim(),
         _passwordController.text,
       );
       if (!mounted) return;
       
-      if (user != null) {
+      if (success) {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -61,6 +62,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.watch<AuthProvider>().isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       body: SafeArea(
@@ -187,8 +190,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         backgroundColor: AppColors.bottomGreen,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
-                      onPressed: _login,
-                      child: const Text("Entrar", style: TextStyle(color: Colors.white, fontSize: 18)),
+                      onPressed: isLoading ? null : _login,
+                      child: isLoading 
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text("Entrar", style: TextStyle(color: Colors.white, fontSize: 18)),
                     ),
                   ),
                   

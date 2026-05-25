@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../core/models/trip.dart';
-import '../core/dao/trip_dao.dart';
+import '../core/providers/trip_provider.dart';
+import 'package:provider/provider.dart';
 
 class NewTripScreen extends StatefulWidget {
   final Trip? trip;
@@ -215,11 +216,10 @@ class _NewTripScreenState extends State<NewTripScreen> {
 
                   try {
                     if (widget.trip != null) {
-                      await TripDAO().updateTrip(trip);
+                      await context.read<TripProvider>().editTrip(trip);
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Viagem atualizada com sucesso!'), backgroundColor: AppColors.moneyGreen));
                     } else {
-                      String id = await TripDAO().insertTrip(trip);
-                      print("Viagem criada com sucesso no SQLite! ID: $id");
+                      await context.read<TripProvider>().addTrip(trip);
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Viagem criada com sucesso!'), backgroundColor: AppColors.moneyGreen));
                     }
                   } catch (e) {

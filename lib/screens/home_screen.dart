@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:app_final/screens/login_screen.dart';
 import 'package:app_final/screens/trip_details_screen.dart';
 import 'package:app_final/screens/new_trip_screen.dart';
-import '../core/models/user.dart';
 import '../core/theme/app_colors.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 import '../widgets/search_filter_bar.dart';
 import '../widgets/custom_fab.dart';
 import 'balances_screen.dart';
 import '../core/models/trip.dart';
-import '../core/dao/trip_dao.dart';
-import '../core/dao/userDAO.dart';
-import '../core/dao/expense_dao.dart';
-import '../core/dao/wallet_dao.dart';
-import '../core/authentication/auth_service.dart';
+import '../core/providers/auth_provider.dart';
+import '../core/providers/trip_provider.dart';
+import '../core/providers/wallet_provider.dart';
 
 // --- MOCK API E MODELOS ---
 // Estes modelos representam as informações que virão do seu back-end em Java futuramente via JSON.
@@ -69,8 +67,6 @@ final List<Category> categories = [
   ),
 ];
 
-// (ApiService mock foi removido para usar os DAOs)
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -79,14 +75,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  User? _currentUser;
-  List<Trip>? _trips;
-  Map<String, double> _tripAmounts = {};
-  double _totalBalanceBrl = 0.0;
-  bool _isLoading = true;
-  
   String _searchQuery = '';
   String _sortOption = 'Recentes (Padrão)';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<AuthProvider>().currentUser;
+      if (user != null && user.id != null) {
+        context.read<TripProvider>().loadTrips(user.id!);
+        context.read<WalletProvider>().loadWalletData(user.id!);
+      }
+    });
+  }
 
   DateTime _parseDate(String dateStr) {
     try {
@@ -100,9 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return DateTime.now();
   }
 
-  List<Trip> get _filteredAndSortedTrips {
-    if (_trips == null) return [];
-    var list = _trips!.where((t) {
+  List<Trip> _getFilteredAndSortedTrips(List<Trip>? trips, Map<String, double> amounts) {
+    if (trips == null) return [];
+    var list = trips.where((t) {
       final q = _searchQuery.toLowerCase();
       return t.title.toLowerCase().contains(q) ||
              t.startDate.contains(q) ||
@@ -123,58 +125,13 @@ class _HomeScreenState extends State<HomeScreen> {
         if (dateCompare != 0) return dateCompare;
         return (a.id ?? '').compareTo(b.id ?? '');
       } else if (_sortOption == 'Maior Gasto') {
-        return (_tripAmounts[b.id!] ?? 0).compareTo(_tripAmounts[a.id!] ?? 0);
+        return (amounts[b.id!] ?? 0).compareTo(amounts[a.id!] ?? 0);
       } else if (_sortOption == 'Menor Gasto') {
-        return (_tripAmounts[a.id!] ?? 0).compareTo(_tripAmounts[b.id!] ?? 0);
+        return (amounts[a.id!] ?? 0).compareTo(amounts[b.id!] ?? 0);
       }
       return 0;
     });
     return list;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData({bool fetchApi = true}) async {
-    User? user = AuthService.currentUser;
-    if (user == null) return;
-
-    // Busca viagens do banco
-    final dbTrips = await TripDAO().getTripsByUser(user!.id!, fetchApi: fetchApi);
-    
-    // Calcula o valor total (BRL) para cada viagem somando os gastos
-    final expenseDAO = ExpenseDAO();
-    Map<String, double> amounts = {};
-    for (var trip in dbTrips) {
-      final expenses = await expenseDAO.getExpensesByTrip(trip.id!);
-      double total = 0.0;
-      for (var exp in expenses) {
-        total += exp.amountBrl;
-      }
-      amounts[trip.id!] = total;
-    }
-
-    // Calcula saldo total das carteiras
-    double totalWalletBrl = 0.0;
-    final wallets = await WalletDAO().getWalletsByUser(user!.id!);
-    for (var w in wallets) {
-      totalWalletBrl += w.balance * w.averageVet;
-    }
-
-    if (mounted) {
-      print("Usuário logado: ${user?.name} (ID: ${user?.id})");
-      print("Total de viagens buscadas: ${dbTrips.length}");
-      setState(() {
-        _currentUser = user;
-        _trips = dbTrips;
-        _tripAmounts = amounts;
-        _totalBalanceBrl = totalWalletBrl;
-        _isLoading = false;
-      });
-    }
   }
 
   void _showSortModal() {
@@ -212,9 +169,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final tripProvider = context.watch<TripProvider>();
+    final walletProvider = context.watch<WalletProvider>();
+
+    final user = authProvider.currentUser;
+    final isLoading = tripProvider.isLoading || walletProvider.isLoading;
+    final sortedTrips = _getFilteredAndSortedTrips(tripProvider.trips, tripProvider.tripAmounts);
+
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
-      body: _isLoading
+      body: isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.moneyGreen))
           : SafeArea(
               child: Column(
@@ -241,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             IconButton(
                               icon: const Icon(Icons.logout, color: Colors.red),
                               onPressed: () {
-                                AuthService().logout();
+                                authProvider.logout();
                                 Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -259,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                              "Olá, ${_currentUser?.name.split(' ')[0] ?? 'Nicole'}",
+                              "Olá, ${user?.name.split(' ')[0] ?? 'Nicole'}",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -278,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 Text(
-                                  "R\$ ${_totalBalanceBrl.toStringAsFixed(2).replaceAll('.', ',')}",
+                                  "R\$ ${walletProvider.totalBalanceBrl.toStringAsFixed(2).replaceAll('.', ',')}",
                                   style: const TextStyle(
                                     color: AppColors.moneyGreen,
                                     fontSize: 24,
@@ -309,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // --- LISTA DE VIAGENS ---
                   Expanded(
-                    child: _filteredAndSortedTrips.isEmpty
+                    child: sortedTrips.isEmpty
                         ? const Center(
                             child: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 40.0),
@@ -326,10 +291,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
-                            itemCount: _filteredAndSortedTrips.length,
+                            itemCount: sortedTrips.length,
                             itemBuilder: (context, index) {
-                              final trip = _filteredAndSortedTrips[index];
-                              return _buildTripCard(context, trip);
+                              final trip = sortedTrips[index];
+                              return _buildTripCard(context, trip, tripProvider.tripAmounts[trip.id!] ?? 0.0);
                             },
                           ),
                   ),
@@ -337,15 +302,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
       floatingActionButton: CustomFAB(
-        onPressed: () async {
-          if (_currentUser == null) return;
-          await Navigator.push(
+        onPressed: () {
+          if (user == null || user.id == null) return;
+          Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NewTripScreen(userId: _currentUser!.id!),
+              builder: (context) => NewTripScreen(userId: user.id!),
             ),
           );
-          _loadData(fetchApi: false); // Recarrega instantaneamente do banco local
         },
       ),
       bottomNavigationBar: CustomBottomNavBar(
@@ -362,21 +326,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTripCard(BuildContext context, Trip trip) {
+  Widget _buildTripCard(BuildContext context, Trip trip, double tripAmount) {
     // coverType pode ter uma URL http, assets/ ou ser vazio
     bool isNetwork = trip.coverType.startsWith('http');
     bool hasImage = trip.coverType.isNotEmpty;
-    double tripAmount = _tripAmounts[trip.id!] ?? 0.0;
     
     return GestureDetector(
-      onTap: () async {
-        await Navigator.push(
+      onTap: () {
+        Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => TripDetailsScreen(trip: trip),
           ),
         );
-        _loadData(fetchApi: false); // Recarrega instantaneamente do banco local
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),

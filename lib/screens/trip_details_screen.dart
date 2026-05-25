@@ -11,7 +11,9 @@ import 'balances_screen.dart';
 import '../core/models/trip.dart';
 import '../core/models/expense.dart';
 import '../core/dao/expense_dao.dart';
-import '../core/dao/trip_dao.dart';
+import 'package:provider/provider.dart';
+import '../core/providers/trip_provider.dart';
+import '../core/providers/auth_provider.dart';
 
 class TripDetailsScreen extends StatefulWidget {
   final Trip trip;
@@ -384,6 +386,10 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
               TextButton(
                 onPressed: () async {
                   await ExpenseDAO().deleteExpense(expense.id!);
+                  final user = context.read<AuthProvider>().currentUser;
+                  if (user != null) {
+                    await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);
+                  }
                   if (mounted) {
                     Navigator.pop(ctx, true);
                     _loadExpenses(fetchApi: false);
@@ -468,7 +474,10 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             ),
             TextButton(
               onPressed: () async {
-                await TripDAO().deleteTrip(widget.trip.id!);
+                final user = context.read<AuthProvider>().currentUser;
+                if (user != null) {
+                  await context.read<TripProvider>().removeTrip(widget.trip.id!, user.id!);
+                }
                 if (mounted) {
                   Navigator.pop(ctx); // Fechar dialog
                   Navigator.pop(context); // Voltar para a home

@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/theme/app_colors.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 import '../widgets/custom_fab.dart';
 import '../widgets/search_filter_bar.dart';
 import 'home_screen.dart';
 import 'new_currency_purchase_screen.dart';
-import '../core/models/wallet.dart';
 import '../core/models/currency_transaction.dart';
-import '../core/dao/wallet_dao.dart';
-import '../core/dao/currency_transaction_dao.dart';
-import '../core/dao/userDAO.dart';
-import '../core/models/user.dart';
-import '../core/authentication/auth_service.dart';
+import '../core/providers/auth_provider.dart';
+import '../core/providers/wallet_provider.dart';
 
 class BalancesScreen extends StatefulWidget {
   const BalancesScreen({super.key});
@@ -21,11 +18,6 @@ class BalancesScreen extends StatefulWidget {
 }
 
 class _BalancesScreenState extends State<BalancesScreen> {
-  User? _currentUser;
-  List<Wallet>? _wallets;
-  List<CurrencyTransaction>? _transactions;
-  double _totalBrl = 0.0;
-  bool _isLoading = true;
   final ScrollController _scrollController = ScrollController();
 
   String _searchQuery = '';
@@ -45,9 +37,9 @@ class _BalancesScreenState extends State<BalancesScreen> {
     return DateTime.now();
   }
 
-  List<CurrencyTransaction> get _filteredAndSortedTransactions {
-    if (_transactions == null) return [];
-    var list = _transactions!.where((t) {
+  List<CurrencyTransaction> _getFilteredAndSortedTransactions(List<CurrencyTransaction>? transactions) {
+    if (transactions == null) return [];
+    var list = transactions.where((t) {
       final q = _searchQuery.toLowerCase();
       final matchesQuery = t.currency.toLowerCase().contains(q) ||
                            t.source.toLowerCase().contains(q) ||
@@ -80,49 +72,6 @@ class _BalancesScreenState extends State<BalancesScreen> {
       return 0;
     });
     return list;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData({bool fetchApi = true}) async {
-    User? user = AuthService.currentUser;
-    if (user == null) {
-      if (mounted) setState(() => _isLoading = false);
-      return;
-    }
-    
-    final wallets = await WalletDAO().getWalletsByUser(user.id!);
-    final transactions = await CurrencyTransactionDAO().getTransactionsByUser(user.id!, fetchApi: fetchApi);
-    
-    bool hasEUR = false;
-    bool hasUSD = false;
-    
-    for (var w in wallets) {
-       if (w.currency == 'EUR' || w.currency == 'Euro') hasEUR = true;
-       if (w.currency == 'USD' || w.currency == 'Dólar') hasUSD = true;
-    }
-    
-    if (!hasEUR) wallets.insert(0, Wallet(userId: user.id!, currency: 'EUR', balance: 0, averageVet: 0));
-    if (!hasUSD) wallets.insert(0, Wallet(userId: user.id!, currency: 'USD', balance: 0, averageVet: 0));
-    
-    double total = 0.0;
-    for (var w in wallets) {
-      total += (w.balance * w.averageVet);
-    }
-    
-    if (mounted) {
-      setState(() {
-        _currentUser = user;
-        _wallets = wallets;
-        _transactions = transactions;
-        _totalBrl = total;
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -174,10 +123,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
     );
   }
 
-  void _showFilterModal() {
-    final currencies = _wallets?.map((w) => w.currency).toList() ?? [];
-    final sources = _transactions?.map((t) => t.source).toSet().toList() ?? [];
-
+  void _showFilterModal(List<String> currencies, List<String> sources) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.cardBackground,
@@ -308,7 +254,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
     );
   }
 
-  Widget _buildPurchaseItem(CurrencyTransaction transaction, Color color) {
+  Widget _buildPurchaseItem(BuildContext context, CurrencyTransaction transaction, Color color) {
     return Dismissible(
       key: ValueKey(transaction.id ?? transaction.date),
       direction: DismissDirection.endToStart,
@@ -329,33 +275,9 @@ class _BalancesScreenState extends State<BalancesScreen> {
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancelar", style: TextStyle(color: Colors.white))),
               TextButton(
                 onPressed: () async {
-                  await CurrencyTransactionDAO().deleteTransaction(transaction.id!);
-                  
-                  // Atualizar o wallet (recalcular saldo)
-                  final walletDao = WalletDAO();
-                  final wallet = await walletDao.getWallet(transaction.userId, transaction.currency);
-                  if (wallet != null) {
-                    final newBalance = wallet.balance - transaction.amount;
-                    if (newBalance <= 0) {
-                      await walletDao.deleteWallet(transaction.userId, transaction.currency);
-                    } else {
-                      // Recalcula o VET real
-                      double totalBrlAntigo = wallet.balance * wallet.averageVet;
-                      double novoTotalBrl = totalBrlAntigo - transaction.amountBrl;
-                      double newVet = novoTotalBrl / newBalance;
-
-                      await walletDao.updateWallet(Wallet(
-                        userId: transaction.userId,
-                        currency: transaction.currency,
-                        balance: newBalance,
-                        averageVet: newVet,
-                      ));
-                    }
-                  }
-
+                  await context.read<WalletProvider>().removeTransaction(transaction);
                   if (mounted) {
                     Navigator.pop(ctx, true);
-                    _loadData(fetchApi: false);
                   }
                 }, 
                 child: const Text("Excluir", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))
@@ -365,18 +287,18 @@ class _BalancesScreenState extends State<BalancesScreen> {
         );
       },
       child: InkWell(
-        onTap: () async {
-          if (_currentUser == null) return;
-          await Navigator.push(
+        onTap: () {
+          final user = context.read<AuthProvider>().currentUser;
+          if (user == null) return;
+          Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => NewCurrencyPurchaseScreen(
-                  userId: _currentUser!.id!,
+                  userId: user.id!,
                   transaction: transaction,
                 ),
               ),
             );
-            _loadData(fetchApi: false);
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -419,6 +341,21 @@ class _BalancesScreenState extends State<BalancesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final walletProvider = context.watch<WalletProvider>();
+
+    final user = authProvider.currentUser;
+    final wallets = walletProvider.wallets;
+    final transactions = walletProvider.transactions;
+    final sortedTransactions = _getFilteredAndSortedTransactions(transactions);
+
+    if (walletProvider.isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.darkBackground,
+        body: Center(child: CircularProgressIndicator(color: AppColors.moneyGreen)),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
@@ -436,7 +373,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
           children: [
             const SizedBox(height: 16),
             Text(
-              "R\$ ${_totalBrl.toStringAsFixed(2)}", // Soma de todas as moedas convertidas pelo VET
+              "R\$ ${walletProvider.totalBalanceBrl.toStringAsFixed(2)}", // Soma de todas as moedas convertidas pelo VET
               style: const TextStyle(
                 color: AppColors.moneyGreen,
                 fontSize: 30,
@@ -446,7 +383,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
             const SizedBox(height: 24),
             
             // Carrossel de Moedas Infinito
-            if (_wallets == null || _wallets!.isEmpty)
+            if (wallets == null || wallets.isEmpty)
               const SizedBox(
                 height: 160,
                 child: Center(
@@ -457,18 +394,18 @@ class _BalancesScreenState extends State<BalancesScreen> {
                   ),
                 ),
               )
-            else if (_wallets!.length == 1)
+            else if (wallets.length == 1)
               SizedBox(
                 height: 160,
                 child: Center(
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width * 0.8, // Largura mais centralizada para 1 item
                     child: _buildCurrencyCard(
-                      _getCurrencyCode(_wallets![0].currency), 
-                      _wallets![0].balance.toStringAsFixed(2), 
-                      "R\$ ${(_wallets![0].balance * _wallets![0].averageVet).toStringAsFixed(2)}", 
-                      "R\$ ${_wallets![0].averageVet.toStringAsFixed(2)}", 
-                      _getCurrencyColor(_wallets![0].currency),
+                      _getCurrencyCode(wallets[0].currency), 
+                      wallets[0].balance.toStringAsFixed(2), 
+                      "R\$ ${(wallets[0].balance * wallets[0].averageVet).toStringAsFixed(2)}", 
+                      "R\$ ${wallets[0].averageVet.toStringAsFixed(2)}", 
+                      _getCurrencyColor(wallets[0].currency),
                     ),
                   ),
                 ),
@@ -482,9 +419,9 @@ class _BalancesScreenState extends State<BalancesScreen> {
                       controller: _scrollController,
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      itemCount: _wallets!.length,
+                      itemCount: wallets.length,
                       itemBuilder: (context, index) {
-                        final wallet = _wallets![index];
+                        final wallet = wallets[index];
                         final color = _getCurrencyColor(wallet.currency);
                         final converted = wallet.balance * wallet.averageVet;
                         return Container(
@@ -500,7 +437,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
                         );
                       },
                     ),
-                    if (_wallets!.length > 2) ...[
+                    if (wallets.length > 2) ...[
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Container(
@@ -536,7 +473,11 @@ class _BalancesScreenState extends State<BalancesScreen> {
               child: SearchFilterBar(
                 isFilterActive: _filterCurrency != null || _filterSource != null,
                 isSortActive: _sortOption != 'Recentes (Padrão)',
-                onFilterTap: _showFilterModal,
+                onFilterTap: () {
+                  final currencies = wallets?.map((w) => w.currency).toList() ?? [];
+                  final sources = transactions?.map((t) => t.source).toSet().toList() ?? [];
+                  _showFilterModal(currencies, sources);
+                },
                 onSortTap: _showSortModal,
                 onSearchChanged: (value) {
                   setState(() {
@@ -550,19 +491,19 @@ class _BalancesScreenState extends State<BalancesScreen> {
             
             // Lista de Compras de Moeda
             Expanded(
-              child: _filteredAndSortedTransactions.isEmpty
+              child: sortedTransactions.isEmpty
                 ? const Center(child: Text("Nenhuma compra encontrada.", style: TextStyle(color: Colors.white54)))
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    itemCount: _filteredAndSortedTransactions.length,
+                    itemCount: sortedTransactions.length,
                     itemBuilder: (context, index) {
-                      final transaction = _filteredAndSortedTransactions[index];
+                      final transaction = sortedTransactions[index];
                       final color = _getCurrencyColor(transaction.currency);
                       
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (index == 0 || _filteredAndSortedTransactions[index].date != _filteredAndSortedTransactions[index-1].date)
+                          if (index == 0 || sortedTransactions[index].date != sortedTransactions[index-1].date)
                             Padding(
                               padding: const EdgeInsets.only(top: 24, bottom: 8),
                               child: Text(
@@ -570,9 +511,9 @@ class _BalancesScreenState extends State<BalancesScreen> {
                                 style: const TextStyle(color: Colors.white, fontSize: 16),
                               ),
                             ),
-                          _buildPurchaseItem(transaction, color),
+                          _buildPurchaseItem(context, transaction, color),
                           const Divider(color: AppColors.silverBorder, height: 1),
-                          if (index == _filteredAndSortedTransactions.length - 1)
+                          if (index == sortedTransactions.length - 1)
                             const SizedBox(height: 80),
                         ],
                       );
@@ -584,15 +525,14 @@ class _BalancesScreenState extends State<BalancesScreen> {
       ),
       
       floatingActionButton: CustomFAB(
-        onPressed: () async {
-          if (_currentUser == null) return;
-          await Navigator.push(
+        onPressed: () {
+          if (user == null) return;
+          Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NewCurrencyPurchaseScreen(userId: _currentUser!.id!),
+              builder: (context) => NewCurrencyPurchaseScreen(userId: user.id!),
             ),
           );
-          _loadData(fetchApi: false);
         },
       ),
       

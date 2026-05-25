@@ -4,9 +4,10 @@ import '../core/models/expense.dart';
 import '../core/models/wallet.dart';
 import '../core/models/user.dart';
 import '../core/dao/expense_dao.dart';
-import '../core/dao/userDAO.dart';
-import '../core/dao/wallet_dao.dart';
-import '../core/authentication/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../core/providers/auth_provider.dart';
+import '../core/providers/wallet_provider.dart';
+import '../core/providers/trip_provider.dart';
 
 class NewExpenseScreen extends StatefulWidget {
   final String tripId;
@@ -63,21 +64,11 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
         _selectedDate = DateTime.now();
       }
     }
-    _loadCurrenciesAndVET();
-  }
-
-  Future<void> _loadCurrenciesAndVET() async {
-    User? user = AuthService.currentUser;
-    if (user == null) return;
-    if (user != null) {
-      final wallets = await WalletDAO().getWalletsByUser(user.id!);
-      if (mounted) {
-        setState(() {
-          _wallets = wallets;
-        });
-        _updateExchangeRate();
-      }
-    }
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _wallets = context.read<WalletProvider>().wallets;
+      _updateExchangeRate();
+    });
   }
 
   void _updateExchangeRate() {
@@ -194,6 +185,10 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                     TextButton(
                       onPressed: () async {
                         await ExpenseDAO().deleteExpense(widget.expense!.id!);
+                        final user = context.read<AuthProvider>().currentUser;
+                        if (user != null) {
+                          await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);
+                        }
                         if (mounted) {
                           Navigator.pop(ctx);
                           Navigator.pop(context);
@@ -428,6 +423,11 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                       await ExpenseDAO().updateExpense(newExpense);
                     } else {
                       await ExpenseDAO().insertExpense(newExpense);
+                    }
+                    
+                    final user = context.read<AuthProvider>().currentUser;
+                    if (user != null) {
+                      await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);
                     }
 
                     if (mounted) Navigator.pop(context);
