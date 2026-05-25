@@ -51,8 +51,8 @@ class _NewTripScreenState extends State<NewTripScreen> {
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: isStart ? _startDate : (_endDate ?? DateTime.now()),
-      firstDate: DateTime(2000),
+      initialDate: isStart ? _startDate : (_endDate ?? (_startDate.isAfter(DateTime.now()) ? _startDate : DateTime.now())),
+      firstDate: isStart ? DateTime(2000) : _startDate,
       lastDate: DateTime(2101),
       builder: (context, child) {
         return Theme(
@@ -72,6 +72,9 @@ class _NewTripScreenState extends State<NewTripScreen> {
       setState(() {
         if (isStart) {
           _startDate = picked;
+          if (_endDate != null && _endDate!.isBefore(_startDate)) {
+            _endDate = null;
+          }
         } else {
           _endDate = picked;
         }
@@ -200,6 +203,14 @@ class _NewTripScreenState extends State<NewTripScreen> {
                   if (_titleController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text('Por favor, preencha o título da viagem.'),
+                      backgroundColor: Colors.red,
+                    ));
+                    return;
+                  }
+                  
+                  if (_endDate != null && _endDate!.isBefore(_startDate)) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('A data final não pode ser anterior à data de início.'),
                       backgroundColor: Colors.red,
                     ));
                     return;

@@ -306,7 +306,9 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                       itemBuilder: (context, index) {
                         final expense = _filteredAndSortedExpenses[index];
                         final cat = categories.firstWhere((c) => c.name == expense.category, orElse: () => categories[0]);
-                        final currencySymbol = expense.currency == 'Euro' ? '€' : (expense.currency == 'Dólar' ? '\$' : 'R\$');
+                        final currencySymbol = (expense.currency == 'EUR' || expense.currency == 'Euro') 
+                            ? '€' 
+                            : ((expense.currency == 'USD' || expense.currency == 'Dólar') ? '\$' : 'R\$');
                         
                         return Column(
                           children: [
