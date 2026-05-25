@@ -7,6 +7,8 @@ import '../core/dao/currency_transaction_dao.dart';
 import '../core/dao/wallet_dao.dart';
 import 'package:provider/provider.dart';
 import '../core/providers/wallet_provider.dart';
+import '../core/providers/auth_provider.dart';
+import '../core/providers/trip_provider.dart';
 
 class NewCurrencyPurchaseScreen extends StatefulWidget {
   final String userId;
@@ -355,11 +357,18 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                     );
                     
                     final walletProvider = context.read<WalletProvider>();
+                    final authProvider = context.read<AuthProvider>();
                     
                     if (widget.transaction != null) {
                       await walletProvider.editTransaction(transaction, widget.transaction!);
                     } else {
                       await walletProvider.addTransaction(transaction);
+                    }
+                    
+                    final user = authProvider.currentUser;
+                    if (user != null) {
+                      // Recarrega as viagens para garantir que o efeito cascata do VET seja refletido na UI
+                      await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);
                     }
                     
                     if (mounted) Navigator.pop(context);

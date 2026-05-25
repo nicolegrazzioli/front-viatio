@@ -100,6 +100,8 @@ class WalletProvider extends ChangeNotifier {
     // 3. Atualização Dinâmica do VET nos Gastos
     if (oldVet != null && oldVet != newVet) {
       await ExpenseDAO().updateDynamicVet(currency, newVet);
+      // Dispara a sincronização em background para o backend receber a cascata
+      ExpenseDAO().syncUnsyncedExpenses();
     }
   }
 
