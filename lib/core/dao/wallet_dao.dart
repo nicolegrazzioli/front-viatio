@@ -10,11 +10,12 @@ class WalletDAO {
     return await db.insert('wallets', wallet.toMap());
   }
 
-  Future<List<Wallet>> getWalletsByUser(String userId) async {
+  Future<List<Wallet>> getWalletsByUser(String userId, {bool fetchApi = true}) async {
     final db = await AppDatabase().database;
 
-    try {
-      final response = await ApiClient.get('/wallets');
+    if (fetchApi) {
+      try {
+        final response = await ApiClient.get('/wallets');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         
@@ -42,8 +43,9 @@ class WalletDAO {
           }
         }
       }
-    } catch (e) {
-      print("Offline: Buscando carteiras locais do SQLite. Erro API: $e");
+      } catch (e) {
+        print("Offline: Buscando carteiras locais do SQLite. Erro API: $e");
+      }
     }
 
     final List<Map<String, dynamic>> maps = await db.query(

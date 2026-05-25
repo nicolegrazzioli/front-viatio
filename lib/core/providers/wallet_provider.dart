@@ -21,8 +21,19 @@ class WalletProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final walletsData = await WalletDAO().getWalletsByUser(userId);
     final transactionsData = await CurrencyTransactionDAO().getTransactionsByUser(userId, fetchApi: fetchApi);
+    
+    if (fetchApi) {
+      await WalletDAO().getWalletsByUser(userId, fetchApi: true);
+      
+      final db = await AppDatabase().database;
+      final currenciesResult = await db.rawQuery('SELECT DISTINCT currency FROM wallets WHERE user_id = ?', [userId]);
+      for (var c in currenciesResult) {
+        await recalculateWallet(userId, c['currency'] as String);
+      }
+    }
+    
+    final walletsData = await WalletDAO().getWalletsByUser(userId, fetchApi: false);
     
     bool hasEUR = false;
     bool hasUSD = false;

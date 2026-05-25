@@ -13,32 +13,51 @@ class CustomBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.darkBackground,
-      ),
-      child: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.transparent,
-        unselectedItemColor: AppColors.offWhite.withOpacity(0.6),
-        selectedItemColor: AppColors.offWhite,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        elevation: 0,
-        currentIndex: currentIndex,
-        onTap: onTap,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined, size: 28),
-            activeIcon: Icon(Icons.home, size: 28),
-            label: "Início",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined, size: 28),
-            activeIcon: Icon(Icons.account_balance_wallet, size: 28),
-            label: "Saldos",
-          ),
-        ],
+    return BottomAppBar(
+      color: AppColors.darkBackground,
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8.0,
+      elevation: 0,
+      child: SizedBox(
+        height: 60,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () => onTap(0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      currentIndex == 0 ? Icons.home : Icons.home_outlined,
+                      size: 28,
+                      // ignore: deprecated_member_use
+                      color: currentIndex == 0 ? AppColors.offWhite : AppColors.offWhite.withOpacity(0.6),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 70), // Espaço no meio para o FAB flutuante
+            Expanded(
+              child: InkWell(
+                onTap: () => onTap(1),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      currentIndex == 1 ? Icons.account_balance_wallet : Icons.account_balance_wallet_outlined,
+                      size: 28,
+                      // ignore: deprecated_member_use
+                      color: currentIndex == 1 ? AppColors.offWhite : AppColors.offWhite.withOpacity(0.6),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
