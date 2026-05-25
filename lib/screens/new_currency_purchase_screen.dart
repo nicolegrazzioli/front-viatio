@@ -27,7 +27,7 @@ class NewCurrencyPurchaseScreen extends StatefulWidget {
 class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _totalBRLController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+
   
   String _selectedCurrency = 'EUR';
   final List<String> _currencies = ['BRL', 'USD', 'EUR'];
@@ -56,8 +56,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
       }
       _selectedOrigin = origin;
       
-      _descriptionController.text = data.description ?? '';
-      
+
       try {
         final dateParts = data.date.split('/');
         _selectedDate = DateTime(int.parse(dateParts[2]), int.parse(dateParts[1]), int.parse(dateParts[0]));
@@ -71,7 +70,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
   void dispose() {
     _amountController.dispose();
     _totalBRLController.dispose();
-    _descriptionController.dispose();
+
     super.dispose();
   }
 
@@ -310,13 +309,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
             ),
             const SizedBox(height: 24),
             
-            // Descrição
-            _buildTextField(
-              hint: "Descrição (opcional)", 
-              controller: _descriptionController,
-              maxLines: 3,
-            ),
-            const SizedBox(height: 48),
+
 
             // Botão Salvar
             Center(
@@ -353,7 +346,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                       source: _selectedOrigin,
                       date: "${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}",
                       vetRate: vet,
-                      description: _descriptionController.text.trim(),
+
                     );
                     
                     final walletProvider = context.read<WalletProvider>();

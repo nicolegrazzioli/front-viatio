@@ -68,7 +68,7 @@ class AppDatabase {
               is_average_cost INTEGER,
               exchange_rate REAL,
               amount_brl REAL,
-              description TEXT,
+
               photo_path TEXT,
               is_synced INTEGER DEFAULT 0,
               is_deleted INTEGER DEFAULT 0,
@@ -86,7 +86,7 @@ class AppDatabase {
               source TEXT,
               date TEXT,
               vet_rate REAL,
-              description TEXT,
+
               photo_path TEXT,
               is_synced INTEGER DEFAULT 0,
               is_deleted INTEGER DEFAULT 0,

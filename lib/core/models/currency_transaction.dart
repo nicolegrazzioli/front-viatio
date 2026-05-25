@@ -7,7 +7,7 @@ class CurrencyTransaction {
   final String source;
   final String date;
   final double vetRate;
-  final String? description;
+
   final String? photoPath;
 
   CurrencyTransaction({
@@ -19,7 +19,7 @@ class CurrencyTransaction {
     required this.source,
     required this.date,
     required this.vetRate,
-    this.description,
+
     this.photoPath,
   });
 
@@ -33,7 +33,7 @@ class CurrencyTransaction {
       'source': source,
       'date': date,
       'vet_rate': vetRate,
-      'description': description,
+
       'photo_path': photoPath,
     };
   }
@@ -48,7 +48,7 @@ class CurrencyTransaction {
       source: map['source'],
       date: map['date'],
       vetRate: map['vet_rate'],
-      description: map['description'],
+
       photoPath: map['photo_path'],
     );
   }

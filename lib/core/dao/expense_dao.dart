@@ -42,7 +42,7 @@ class ExpenseDAO {
       isAverageCost: expense.isAverageCost,
       exchangeRate: expense.exchangeRate,
       amountBrl: expense.amountBrl,
-      description: expense.description,
+
       photoPath: expense.photoPath,
     );
 
@@ -71,7 +71,7 @@ class ExpenseDAO {
         'isAverageCost': expense.isAverageCost,
         'exchangeRate': expense.exchangeRate,
         'amountBrl': expense.amountBrl,
-        'description': expense.description,
+
         'photoPath': expense.photoPath,
       });
       // Se sucesso, marca como sincronizado
@@ -128,7 +128,7 @@ class ExpenseDAO {
             isAverageCost: e['isAverageCost'] ?? false,
             exchangeRate: e['exchangeRate']?.toDouble() ?? 1.0,
             amountBrl: e['amountBrl']?.toDouble() ?? 0.0,
-            description: e['description'],
+
             photoPath: e['photoPath'],
           );
           

@@ -9,7 +9,7 @@ class Expense {
   final bool isAverageCost;
   final double? exchangeRate;
   final double amountBrl;
-  final String? description;
+
   final String? photoPath;
 
   Expense({
@@ -23,7 +23,7 @@ class Expense {
     required this.isAverageCost,
     this.exchangeRate,
     required this.amountBrl,
-    this.description,
+
     this.photoPath,
   });
 
@@ -39,7 +39,7 @@ class Expense {
       'is_average_cost': isAverageCost ? 1 : 0, // SQLite armazena booleanos como 0 ou 1
       'exchange_rate': exchangeRate,
       'amount_brl': amountBrl,
-      'description': description,
+
       'photo_path': photoPath,
     };
   }
@@ -56,7 +56,7 @@ class Expense {
       isAverageCost: map['is_average_cost'] == 1,
       exchangeRate: map['exchange_rate'],
       amountBrl: map['amount_brl'],
-      description: map['description'],
+
       photoPath: map['photo_path'],
     );
   }

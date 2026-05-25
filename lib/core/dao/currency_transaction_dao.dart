@@ -40,7 +40,7 @@ class CurrencyTransactionDAO {
       source: transaction.source,
       date: transaction.date,
       vetRate: transaction.vetRate,
-      description: transaction.description,
+
       photoPath: transaction.photoPath,
     );
 
@@ -65,7 +65,7 @@ class CurrencyTransactionDAO {
         'source': transaction.source,
         'date': _toApiDate(transaction.date),
         'vetRate': transaction.vetRate,
-        'description': transaction.description,
+
         'photoPath': transaction.photoPath,
       });
       final db = await AppDatabase().database;
@@ -116,7 +116,7 @@ class CurrencyTransactionDAO {
             source: e['source'],
             date: _fromApiDate(e['date']),
             vetRate: e['vetRate']?.toDouble() ?? 1.0,
-            description: e['description'],
+
             photoPath: e['photoPath'],
           );
           await db.insert(

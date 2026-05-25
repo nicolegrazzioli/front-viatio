@@ -43,7 +43,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _exchangeRateController = TextEditingController(text: '1.0');
-  final TextEditingController _descriptionController = TextEditingController();
+
 
   bool _willBeNegative = false;
 
@@ -58,7 +58,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
       _selectedCurrency = data.currency;
       _selectedCategory = data.category;
       _exchangeRateController.text = data.exchangeRate?.toString() ?? '1.0';
-      _descriptionController.text = data.description ?? '';
+
       _useAverageCost = data.isAverageCost;
       try {
         final dateParts = data.date.split('/');
@@ -81,7 +81,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
     _titleController.dispose();
     _amountController.dispose();
     _exchangeRateController.dispose();
-    _descriptionController.dispose();
+
     super.dispose();
   }
 
@@ -475,9 +475,6 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Descrição (Opcional)
-            _buildTextField(hint: "Descrição (opcional)", controller: _descriptionController),
-            const SizedBox(height: 48),
 
             // Botão Salvar
             Center(
@@ -513,7 +510,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                       isAverageCost: _useAverageCost,
                       exchangeRate: exchangeRate,
                       amountBrl: amountBrl,
-                      description: _descriptionController.text.trim(),
+
                     );
 
                     if (widget.expense != null) {
