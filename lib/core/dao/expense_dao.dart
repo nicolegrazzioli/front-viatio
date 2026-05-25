@@ -193,12 +193,109 @@ class ExpenseDAO {
     }
   }
 
-  Future<void> updateDynamicVet(String currency, double newVet) async {
+  Future<double> getTripVet(String userId, String tripId, String currency) async {
     final db = await AppDatabase().database;
-    await db.rawUpdate('''
-      UPDATE expenses 
-      SET exchange_rate = ?, amount_brl = amount * ?, is_synced = 0
-      WHERE currency = ? AND is_average_cost = 1 AND is_deleted = 0
-    ''', [newVet, newVet, currency]);
+    final tripRes = await db.query('trips', where: 'id = ?', whereArgs: [tripId]);
+    if (tripRes.isEmpty) return 1.0;
+    
+    final endDateStr = tripRes.first['end_date'] as String?;
+    DateTime? cutoffDate;
+    if (endDateStr != null && endDateStr.isNotEmpty) {
+      try {
+        final parts = endDateStr.split('/');
+        cutoffDate = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]), 23, 59, 59);
+      } catch(e) {}
+    }
+    
+    final txs = await db.query('currency_transactions', where: 'user_id = ? AND currency = ? AND is_deleted = 0', whereArgs: [userId, currency]);
+    double totalBought = 0.0;
+    double totalBrl = 0.0;
+    
+    for (var tx in txs) {
+      DateTime txDate = DateTime.now();
+      try {
+        final parts = (tx['date'] as String).split('/');
+        txDate = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      } catch(e) {}
+      
+      if (cutoffDate == null || txDate.isBefore(cutoffDate) || txDate.isAtSameMomentAs(cutoffDate)) {
+        totalBought += (tx['amount'] as num?)?.toDouble() ?? 0.0;
+        totalBrl += (tx['amount_brl'] as num?)?.toDouble() ?? 0.0;
+      }
+    }
+    
+    if (totalBought > 0) {
+      return totalBrl / totalBought;
+    } else {
+      double globalBought = 0.0;
+      double globalBrl = 0.0;
+      for (var tx in txs) {
+        globalBought += (tx['amount'] as num?)?.toDouble() ?? 0.0;
+        globalBrl += (tx['amount_brl'] as num?)?.toDouble() ?? 0.0;
+      }
+      return globalBought > 0 ? globalBrl / globalBought : 1.0;
+    }
+  }
+
+  Future<void> updateDynamicVetForTrips(String userId, String currency) async {
+    final db = await AppDatabase().database;
+    final trips = await db.query('trips', where: 'user_id = ? AND is_deleted = 0', whereArgs: [userId]);
+    final txs = await db.query('currency_transactions', where: 'user_id = ? AND currency = ? AND is_deleted = 0', whereArgs: [userId, currency]);
+    
+    final parsedTxs = txs.map((tx) {
+      DateTime date = DateTime.now();
+      try {
+        final parts = (tx['date'] as String).split('/');
+        date = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      } catch(e) {}
+      return {
+        'date': date,
+        'amount': (tx['amount'] as num?)?.toDouble() ?? 0.0,
+        'amount_brl': (tx['amount_brl'] as num?)?.toDouble() ?? 0.0,
+      };
+    }).toList();
+
+    for (var trip in trips) {
+      final tripId = trip['id'] as String;
+      final endDateStr = trip['end_date'] as String?;
+      
+      DateTime? cutoffDate;
+      if (endDateStr != null && endDateStr.isNotEmpty) {
+        try {
+          final parts = endDateStr.split('/');
+          cutoffDate = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]), 23, 59, 59);
+        } catch(e) {}
+      }
+      
+      double totalBought = 0.0;
+      double totalBrl = 0.0;
+      for (var tx in parsedTxs) {
+        if (cutoffDate == null || (tx['date'] as DateTime).isBefore(cutoffDate!) || (tx['date'] as DateTime).isAtSameMomentAs(cutoffDate!)) {
+          totalBought += tx['amount'] as double;
+          totalBrl += tx['amount_brl'] as double;
+        }
+      }
+      
+      double tripVet = 0.0;
+      if (totalBought > 0) {
+        tripVet = totalBrl / totalBought;
+      } else {
+        double globalBought = 0.0;
+        double globalBrl = 0.0;
+        for (var tx in parsedTxs) {
+          globalBought += tx['amount'] as double;
+          globalBrl += tx['amount_brl'] as double;
+        }
+        if (globalBought > 0) tripVet = globalBrl / globalBought;
+      }
+      
+      if (tripVet > 0) {
+        await db.rawUpdate('''
+          UPDATE expenses 
+          SET exchange_rate = ?, amount_brl = amount * ?, is_synced = 0
+          WHERE trip_id = ? AND currency = ? AND is_average_cost = 1 AND is_deleted = 0 AND (exchange_rate != ? OR amount_brl != (amount * ?))
+        ''', [tripVet, tripVet, tripId, currency, tripVet, tripVet]);
+      }
+    }
   }
 }

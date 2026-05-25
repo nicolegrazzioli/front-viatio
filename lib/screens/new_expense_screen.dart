@@ -71,19 +71,20 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
     });
   }
 
-  void _updateExchangeRate() {
+  Future<void> _updateExchangeRate() async {
     if (_useAverageCost && _wallets != null) {
       if (_selectedCurrency == 'BRL') {
-        _exchangeRateController.text = '1.0';
+        if (mounted) setState(() => _exchangeRateController.text = '1.0');
       } else {
-        final wallet = _wallets!.cast<Wallet?>().firstWhere(
-          (w) => w!.currency == _selectedCurrency, 
-          orElse: () => null,
-        );
-        if (wallet != null) {
-          _exchangeRateController.text = wallet.averageVet.toStringAsFixed(2);
-        } else {
-          _exchangeRateController.text = '1.0';
+        final authProvider = context.read<AuthProvider>();
+        final userId = authProvider.currentUser?.id;
+        if (userId != null) {
+          final tripVet = await ExpenseDAO().getTripVet(userId, widget.tripId, _selectedCurrency);
+          if (mounted) {
+            setState(() {
+              _exchangeRateController.text = tripVet.toStringAsFixed(2);
+            });
+          }
         }
       }
     }
@@ -188,6 +189,8 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                         final user = context.read<AuthProvider>().currentUser;
                         if (user != null) {
                           await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);
+                          await context.read<WalletProvider>().recalculateWallet(user.id!, widget.expense!.currency);
+                          await context.read<WalletProvider>().loadWalletData(user.id!, fetchApi: false);
                         }
                         if (mounted) {
                           Navigator.pop(ctx);

@@ -3,6 +3,7 @@ import '../core/theme/app_colors.dart';
 import '../core/models/trip.dart';
 import '../core/providers/trip_provider.dart';
 import 'package:provider/provider.dart';
+import '../core/providers/wallet_provider.dart';
 
 class NewTripScreen extends StatefulWidget {
   final Trip? trip;
@@ -228,6 +229,9 @@ class _NewTripScreenState extends State<NewTripScreen> {
                   try {
                     if (widget.trip != null) {
                       await context.read<TripProvider>().editTrip(trip);
+                      await context.read<WalletProvider>().recalculateWallet(trip.userId, 'EUR');
+                      await context.read<WalletProvider>().recalculateWallet(trip.userId, 'USD');
+                      await context.read<WalletProvider>().loadWalletData(trip.userId, fetchApi: false);
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Viagem atualizada com sucesso!'), backgroundColor: AppColors.moneyGreen));
                     } else {
                       await context.read<TripProvider>().addTrip(trip);

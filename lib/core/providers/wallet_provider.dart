@@ -69,7 +69,7 @@ class WalletProvider extends ChangeNotifier {
       SELECT SUM(e.amount) as spent 
       FROM expenses e
       JOIN trips t ON e.trip_id = t.id
-      WHERE t.user_id = ? AND e.currency = ? AND e.is_deleted = 0
+      WHERE t.user_id = ? AND e.currency = ? AND e.is_deleted = 0 AND t.is_deleted = 0
     ''', [userId, currency]);
     
     double totalSpent = (expenseResult.first['spent'] as num?)?.toDouble() ?? 0.0;
@@ -99,7 +99,7 @@ class WalletProvider extends ChangeNotifier {
 
     // 3. Atualização Dinâmica do VET nos Gastos
     if (oldVet != null && oldVet != newVet) {
-      await ExpenseDAO().updateDynamicVet(currency, newVet);
+      await ExpenseDAO().updateDynamicVetForTrips(userId, currency);
       // Dispara a sincronização em background para o backend receber a cascata
       ExpenseDAO().syncUnsyncedExpenses();
     }
