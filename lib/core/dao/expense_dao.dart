@@ -228,7 +228,7 @@ class ExpenseDAO {
       return totalBrl / totalBought;
     }
     
-    return 1.0;
+    return 0.0;
   }
 
   Future<void> updateDynamicVetForTrips(String userId, String currency) async {
@@ -274,7 +274,7 @@ class ExpenseDAO {
       if (totalBought > 0) {
         tripVet = totalBrl / totalBought;
       } else {
-        tripVet = 1.0;
+        tripVet = 0.0;
       }
       
       if (tripVet > 0) {

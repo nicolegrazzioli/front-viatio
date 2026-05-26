@@ -88,6 +88,15 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
   void _checkNegativeBalance() {
     if (_wallets == null) return;
     
+    if (_selectedCurrency == 'BRL') {
+      if (_willBeNegative) {
+        setState(() {
+          _willBeNegative = false;
+        });
+      }
+      return;
+    }
+    
     final currentWallet = _wallets!.firstWhere(
       (w) => w.currency == _selectedCurrency, 
       orElse: () => Wallet(userId: '0', currency: _selectedCurrency, balance: 0.0, averageVet: 0.0)
@@ -121,8 +130,8 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
               _hasCurrencyVet = tripVet > 0.0;
               if (!_hasCurrencyVet) {
                 _useAverageCost = false;
-              }
-              if (_useAverageCost) {
+                _exchangeRateController.text = '';
+              } else if (_useAverageCost) {
                 _exchangeRateController.text = tripVet.toStringAsFixed(2);
               }
             });
@@ -491,6 +500,10 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                   onPressed: () async {
                     if (_titleController.text.trim().isEmpty || _amountController.text.trim().isEmpty || _selectedCategory == null) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preencha título, valor e categoria')));
+                      return;
+                    }
+                    if (!_useAverageCost && _selectedCurrency != 'BRL' && _exchangeRateController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor, informe o valor do câmbio.')));
                       return;
                     }
 
