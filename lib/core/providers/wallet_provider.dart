@@ -5,6 +5,7 @@ import '../repositories/wallet_repository.dart';
 import '../repositories/currency_transaction_repository.dart';
 import '../repositories/expense_repository.dart';
 import '../database/me_app_database.dart';
+import '../constants/app_currencies.dart';
 
 class WalletProvider extends ChangeNotifier {
   List<Wallet>? _wallets;
@@ -39,12 +40,12 @@ class WalletProvider extends ChangeNotifier {
     bool hasUSD = false;
     
     for (var w in walletsData) {
-       if (w.currency == 'EUR' || w.currency == 'Euro') hasEUR = true;
-       if (w.currency == 'USD' || w.currency == 'Dólar') hasUSD = true;
+       if (AppCurrencies.isEuro(w.currency)) hasEUR = true;
+       if (AppCurrencies.isUsd(w.currency)) hasUSD = true;
     }
     
-    if (!hasEUR) walletsData.insert(0, Wallet(userId: userId, currency: 'EUR', balance: 0, averageVet: 0));
-    if (!hasUSD) walletsData.insert(0, Wallet(userId: userId, currency: 'USD', balance: 0, averageVet: 0));
+    if (!hasEUR) walletsData.insert(0, Wallet(userId: userId, currency: AppCurrencies.eur, balance: 0, averageVet: 0));
+    if (!hasUSD) walletsData.insert(0, Wallet(userId: userId, currency: AppCurrencies.usd, balance: 0, averageVet: 0));
     
     double total = 0.0;
     for (var w in walletsData) {
