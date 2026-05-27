@@ -10,7 +10,7 @@ import 'new_expense_screen.dart';
 import 'balances_screen.dart';
 import '../core/models/trip.dart';
 import '../core/models/expense.dart';
-import '../core/dao/expense_dao.dart';
+import '../core/repositories/expense_repository.dart';
 import 'package:provider/provider.dart';
 import '../core/providers/trip_provider.dart';
 import '../core/providers/auth_provider.dart';
@@ -92,7 +92,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
 
   Future<void> _loadExpenses({bool fetchApi = true}) async {
     if (widget.trip.id == null) return;
-    final expenses = await ExpenseDAO().getExpensesByTrip(widget.trip.id!, fetchApi: fetchApi);
+    final expenses = await ExpenseRepository().getExpensesByTrip(widget.trip.id!, fetchApi: fetchApi);
     
     double total = 0.0;
     Map<String, double> catTotals = {};
@@ -393,7 +393,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancelar", style: TextStyle(color: Colors.white))),
               TextButton(
                 onPressed: () async {
-                  await ExpenseDAO().deleteExpense(expense.id!);
+                  await ExpenseRepository().deleteExpense(expense.id!);
                   final user = context.read<AuthProvider>().currentUser;
                   if (user != null) {
                     await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);

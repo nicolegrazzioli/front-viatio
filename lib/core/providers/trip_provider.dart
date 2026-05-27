@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/trip.dart';
-import '../dao/trip_dao.dart';
-import '../dao/expense_dao.dart';
+import '../repositories/trip_repository.dart';
+import '../repositories/expense_repository.dart';
 
 class TripProvider extends ChangeNotifier {
   List<Trip>? _trips;
@@ -16,13 +16,13 @@ class TripProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final dbTrips = await TripDAO().getTripsByUser(userId, fetchApi: fetchApi);
+    final dbTrips = await TripRepository().getTripsByUser(userId, fetchApi: fetchApi);
     
-    final expenseDAO = ExpenseDAO();
+    final expenseRepo = ExpenseRepository();
     Map<String, double> amounts = {};
     
     for (var trip in dbTrips) {
-      final expenses = await expenseDAO.getExpensesByTrip(trip.id!);
+      final expenses = await expenseRepo.getExpensesByTrip(trip.id!, fetchApi: false);
       double total = 0.0;
       for (var exp in expenses) {
         total += exp.amountBrl;
@@ -37,18 +37,18 @@ class TripProvider extends ChangeNotifier {
   }
 
   Future<void> addTrip(Trip trip) async {
-    await TripDAO().insertTrip(trip);
+    await TripRepository().insertTrip(trip);
     // Recarrega as viagens localmente (sem chamar a API para ser rápido)
     await loadTrips(trip.userId, fetchApi: false);
   }
 
   Future<void> editTrip(Trip trip) async {
-    await TripDAO().updateTrip(trip);
+    await TripRepository().updateTrip(trip);
     await loadTrips(trip.userId, fetchApi: false);
   }
 
   Future<void> removeTrip(String tripId, String userId) async {
-    await TripDAO().deleteTrip(tripId);
+    await TripRepository().deleteTrip(tripId);
     await loadTrips(userId, fetchApi: false);
   }
 }

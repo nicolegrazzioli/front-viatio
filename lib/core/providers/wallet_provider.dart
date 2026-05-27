@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import '../models/wallet.dart';
 import '../models/currency_transaction.dart';
-import '../dao/wallet_dao.dart';
-import '../dao/currency_transaction_dao.dart';
-import '../dao/expense_dao.dart';
+import '../repositories/wallet_repository.dart';
+import '../repositories/currency_transaction_repository.dart';
+import '../repositories/expense_repository.dart';
 import '../database/me_app_database.dart';
 
 class WalletProvider extends ChangeNotifier {
@@ -21,10 +21,10 @@ class WalletProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final transactionsData = await CurrencyTransactionDAO().getTransactionsByUser(userId, fetchApi: fetchApi);
+    final transactionsData = await CurrencyTransactionRepository().getTransactionsByUser(userId, fetchApi: fetchApi);
     
     if (fetchApi) {
-      await WalletDAO().getWalletsByUser(userId, fetchApi: true);
+      await WalletRepository().getWalletsByUser(userId, fetchApi: true);
       
       final db = await AppDatabase().database;
       final currenciesResult = await db.rawQuery('SELECT DISTINCT currency FROM wallets WHERE user_id = ?', [userId]);
@@ -33,7 +33,7 @@ class WalletProvider extends ChangeNotifier {
       }
     }
     
-    final walletsData = await WalletDAO().getWalletsByUser(userId, fetchApi: false);
+    final walletsData = await WalletRepository().getWalletsByUser(userId, fetchApi: false);
     
     bool hasEUR = false;
     bool hasUSD = false;
@@ -60,7 +60,7 @@ class WalletProvider extends ChangeNotifier {
 
   Future<void> recalculateWallet(String userId, String currency) async {
     final db = await AppDatabase().database;
-    final walletDao = WalletDAO();
+    final walletRepo = WalletRepository();
     
     // 1. Soma das compras (CurrencyTransactions)
     final txs = await db.query('currency_transactions', 
@@ -92,7 +92,7 @@ class WalletProvider extends ChangeNotifier {
       newVet = totalBrl / totalBought;
     }
     
-    final currentWallet = await walletDao.getWallet(userId, currency);
+    final currentWallet = await walletRepo.getWallet(userId, currency);
     double? oldVet = currentWallet?.averageVet;
 
     final newWallet = Wallet(
@@ -103,27 +103,27 @@ class WalletProvider extends ChangeNotifier {
     );
     
     if (currentWallet == null) {
-      await walletDao.insertWallet(newWallet);
+      await walletRepo.insertWallet(newWallet);
     } else {
-      await walletDao.updateWallet(newWallet);
+      await walletRepo.updateWallet(newWallet);
     }
 
     // 3. Atualização Dinâmica do VET nos Gastos
     if (oldVet != null && oldVet != newVet) {
-      await ExpenseDAO().updateDynamicVetForTrips(userId, currency);
+      await ExpenseRepository().updateDynamicVetForTrips(userId, currency);
       // Dispara a sincronização em background para o backend receber a cascata
-      ExpenseDAO().syncUnsyncedExpenses();
+      await ExpenseRepository().syncUnsyncedExpenses();
     }
   }
 
   Future<void> addTransaction(CurrencyTransaction transaction) async {
-    await CurrencyTransactionDAO().insertTransaction(transaction);
+    await CurrencyTransactionRepository().insertTransaction(transaction);
     await recalculateWallet(transaction.userId, transaction.currency);
     await loadWalletData(transaction.userId, fetchApi: false);
   }
 
   Future<void> editTransaction(CurrencyTransaction newTx, CurrencyTransaction oldTx) async {
-    await CurrencyTransactionDAO().updateTransaction(newTx);
+    await CurrencyTransactionRepository().updateTransaction(newTx);
     await recalculateWallet(newTx.userId, newTx.currency);
     if (newTx.currency != oldTx.currency) {
       await recalculateWallet(oldTx.userId, oldTx.currency);
@@ -132,7 +132,7 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> removeTransaction(CurrencyTransaction transaction) async {
-    await CurrencyTransactionDAO().deleteTransaction(transaction.id!);
+    await CurrencyTransactionRepository().deleteTransaction(transaction.id!);
     await recalculateWallet(transaction.userId, transaction.currency);
     await loadWalletData(transaction.userId, fetchApi: false);
   }

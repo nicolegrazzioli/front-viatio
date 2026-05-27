@@ -4,11 +4,12 @@ import '../core/models/expense.dart';
 import '../core/models/trip.dart';
 import '../core/models/wallet.dart';
 import '../core/models/user.dart';
-import '../core/dao/expense_dao.dart';
+import '../core/repositories/expense_repository.dart';
 import 'package:provider/provider.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/providers/wallet_provider.dart';
 import '../core/providers/trip_provider.dart';
+import '../core/providers/expense_provider.dart';
 
 class NewExpenseScreen extends StatefulWidget {
   final Trip trip;
@@ -124,7 +125,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
         final authProvider = context.read<AuthProvider>();
         final userId = authProvider.currentUser?.id;
         if (userId != null) {
-          final tripVet = await ExpenseDAO().getTripVet(userId, widget.trip.id!, _selectedCurrency);
+          final tripVet = await ExpenseRepository().getTripVet(userId, widget.trip.id!, _selectedCurrency);
           if (mounted) {
             setState(() {
               _hasCurrencyVet = tripVet > 0.0;
@@ -260,12 +261,14 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                     TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancelar", style: TextStyle(color: Colors.white))),
                     TextButton(
                       onPressed: () async {
-                        await ExpenseDAO().deleteExpense(widget.expense!.id!);
                         final user = context.read<AuthProvider>().currentUser;
                         if (user != null) {
-                          await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);
-                          await context.read<WalletProvider>().recalculateWallet(user.id!, widget.expense!.currency);
-                          await context.read<WalletProvider>().loadWalletData(user.id!, fetchApi: false);
+                          await context.read<ExpenseProvider>().deleteAndRecalculate(
+                            expense: widget.expense!,
+                            userId: user.id!,
+                            tripProvider: context.read<TripProvider>(),
+                            walletProvider: context.read<WalletProvider>(),
+                          );
                         }
                         if (mounted) {
                           Navigator.pop(ctx);
@@ -526,25 +529,16 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
 
                     );
 
-                    if (widget.expense != null) {
-                      await ExpenseDAO().updateExpense(newExpense);
-                    } else {
-                      await ExpenseDAO().insertExpense(newExpense);
-                    }
-                    
                     final user = context.read<AuthProvider>().currentUser;
                     if (user != null) {
-                      await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);
-                      
-                      // Recalcula as carteiras para atualizar saldo e VET
-                      await context.read<WalletProvider>().recalculateWallet(user.id!, _selectedCurrency);
-                      await context.read<WalletProvider>().loadWalletData(user.id!, fetchApi: false);
-                      
-                      // Se estávamos editando e a moeda mudou, temos que recalcular a moeda antiga também!
-                      if (widget.expense != null && widget.expense!.currency != _selectedCurrency) {
-                        await context.read<WalletProvider>().recalculateWallet(user.id!, widget.expense!.currency);
-                        await context.read<WalletProvider>().loadWalletData(user.id!, fetchApi: false);
-                      }
+                      await context.read<ExpenseProvider>().saveAndRecalculate(
+                        expense: newExpense,
+                        isEdit: widget.expense != null,
+                        oldCurrency: widget.expense?.currency,
+                        userId: user.id!,
+                        tripProvider: context.read<TripProvider>(),
+                        walletProvider: context.read<WalletProvider>(),
+                      );
                     }
 
                     if (mounted) Navigator.pop(context);

@@ -1,6 +1,6 @@
-import '../dao/trip_dao.dart';
-import '../dao/expense_dao.dart';
-import '../dao/currency_transaction_dao.dart';
+import '../repositories/trip_repository.dart';
+import '../repositories/expense_repository.dart';
+import '../repositories/currency_transaction_repository.dart';
 import 'package:flutter/foundation.dart';
 
 class SyncEngine {
@@ -8,9 +8,9 @@ class SyncEngine {
   factory SyncEngine() => _instance;
   SyncEngine._internal();
 
-  final TripDAO _tripDAO = TripDAO();
-  final ExpenseDAO _expenseDAO = ExpenseDAO();
-  final CurrencyTransactionDAO _currencyTransactionDAO = CurrencyTransactionDAO();
+  final TripRepository _tripRepo = TripRepository();
+  final ExpenseRepository _expenseRepo = ExpenseRepository();
+  final CurrencyTransactionRepository _currencyTransactionRepo = CurrencyTransactionRepository();
 
   bool _isSyncing = false;
 
@@ -22,9 +22,9 @@ class SyncEngine {
         print("SyncEngine: Iniciando sincronização em background...");
       }
       
-      await _tripDAO.syncUnsyncedTrips();
-      await _expenseDAO.syncUnsyncedExpenses();
-      await _currencyTransactionDAO.syncUnsyncedTransactions();
+      await _tripRepo.syncUnsyncedTrips();
+      await _expenseRepo.syncUnsyncedExpenses();
+      await _currencyTransactionRepo.syncUnsyncedTransactions();
       
       if (kDebugMode) {
         print("SyncEngine: Sincronização concluída.");

@@ -7,6 +7,7 @@ import 'package:app_final/core/database/me_app_database.dart';
 import 'package:app_final/core/providers/auth_provider.dart';
 import 'package:app_final/core/providers/trip_provider.dart';
 import 'package:app_final/core/providers/wallet_provider.dart';
+import 'package:app_final/core/providers/expense_provider.dart';
 import 'app_widget.dart';
 
 void main() async {
@@ -39,6 +40,7 @@ void main() async {
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider(create: (_) => TripProvider()),
         ChangeNotifierProvider(create: (_) => WalletProvider()),
+        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
       ],
       child: const MyApp(),
     ),
