@@ -186,6 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
+      resizeToAvoidBottomInset: false,
       body: isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.moneyGreen))
           : SafeArea(

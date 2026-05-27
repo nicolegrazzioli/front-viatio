@@ -360,6 +360,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
