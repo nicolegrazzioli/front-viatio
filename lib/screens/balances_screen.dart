@@ -226,9 +226,9 @@ class _BalancesScreenState extends State<BalancesScreen> {
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: cardColor.withOpacity(0.5), width: 1),
+        border: Border.all(color: cardColor.withValues(alpha: 0.5), width: 1),
         boxShadow: [
-          BoxShadow(color: cardColor.withOpacity(0.15), blurRadius: 8, spreadRadius: -2, offset: const Offset(0, 4)),
+          BoxShadow(color: cardColor.withValues(alpha: 0.15), blurRadius: 8, spreadRadius: -2, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(

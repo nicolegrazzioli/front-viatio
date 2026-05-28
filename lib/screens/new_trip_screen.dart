@@ -165,7 +165,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
                         image: NetworkImage(cover["url"]!),
                         fit: BoxFit.cover,
                         colorFilter: ColorFilter.mode(
-                          Colors.black.withOpacity(isSelected ? 0.2 : 0.5),
+                          Colors.black.withValues(alpha: isSelected ? 0.2 : 0.5),
                           BlendMode.darken,
                         ),
                       ),
@@ -232,7 +232,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Viagem criada com sucesso!'), backgroundColor: AppColors.moneyGreen));
                     }
                   } catch (e) {
-                    print("Erro ao salvar viagem: $e");
+                    debugPrint("Erro ao salvar viagem: $e");
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: Colors.red));
                   }
                   

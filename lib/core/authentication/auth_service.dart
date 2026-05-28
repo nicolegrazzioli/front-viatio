@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
@@ -25,7 +26,7 @@ class AuthService {
       
       return response.statusCode == 200;
     } catch (e) {
-      print("Erro no registro: $e");
+      debugPrint("Erro no registro: $e");
       return false;
     }
   }
@@ -61,7 +62,7 @@ class AuthService {
         return loggedUser;
       }
     } catch (e) {
-      print("Erro no login: $e");
+      debugPrint("Erro no login: $e");
     }
     return null;
   }

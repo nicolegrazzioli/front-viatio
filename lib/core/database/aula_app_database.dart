@@ -1,4 +1,5 @@
 import 'package:path/path.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppDatabase {
@@ -12,7 +13,7 @@ class AppDatabase {
   Future<Database> get database async {
     if(_db != null) return _db!;
     _db = await _initDatabase();
-    print('Database opened!');
+    debugPrint('Database opened!');
     return _db!;
   }
 

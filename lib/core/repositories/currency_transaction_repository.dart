@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 import '../models/currency_transaction.dart';
 import '../api/api_client.dart';
 import '../dao/currency_transaction_dao.dart';
@@ -52,7 +52,7 @@ class CurrencyTransactionRepository {
         await _dao.updateSyncStatus(transaction.id!, 1);
       }
     } catch (e) {
-      print("Offline: Transação salva apenas localmente. Erro API: \$e");
+      debugPrint("Offline: Transação salva apenas localmente. Erro API: $e");
     }
   }
 
@@ -109,7 +109,7 @@ class CurrencyTransactionRepository {
           }
         }
       } catch (e) {
-        print("Offline: Buscando transações locais do SQLite. Erro API: \$e");
+        debugPrint("Offline: Buscando transações locais do SQLite. Erro API: $e");
       }
     }
     return await _dao.getTransactionsByUser(userId);
@@ -129,10 +129,10 @@ class CurrencyTransactionRepository {
 
   Future<void> _syncDeleteTransaction(String id) async {
     try {
-      await ApiClient.delete('/currency-transactions/\$id');
+      await ApiClient.delete('/currency-transactions/$id');
       await _dao.deleteTransactionHard(id);
     } catch (e) {
-      print("Offline: Deleção de transação agendada. Erro API: \$e");
+      debugPrint("Offline: Deleção de transação agendada. Erro API: $e");
     }
   }
 }

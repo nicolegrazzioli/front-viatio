@@ -13,25 +13,25 @@ import 'app_widget.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  print("--- Iniciando Aplicativo ---");
+  debugPrint("--- Iniciando Aplicativo ---");
 
   final authProvider = AuthProvider();
 
   try {
     if (kIsWeb) {
-      print("Configurando databaseFactory para Web...");
+      debugPrint("Configurando databaseFactory para Web...");
       databaseFactory = databaseFactoryFfiWeb;
     }
     
-    print("Tentando inicializar o banco de dados...");
+    debugPrint("Tentando inicializar o banco de dados...");
     await AppDatabase().database;
-    print("Banco de dados inicializado com sucesso!");
+    debugPrint("Banco de dados inicializado com sucesso!");
     
     // Inicia a sessão buscando o usuário do SQLite através do Provider
     await authProvider.initSession();
     
   } catch (e) {
-    print("ERRO ao inicializar: $e");
+    debugPrint("ERRO ao inicializar: $e");
   }
 
   runApp(

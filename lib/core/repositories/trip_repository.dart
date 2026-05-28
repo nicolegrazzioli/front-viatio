@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 import '../models/trip.dart';
 import '../api/api_client.dart';
 import '../dao/trip_dao.dart';
@@ -47,7 +47,7 @@ class TripRepository {
         await _dao.updateSyncStatus(trip.id!, 1);
       }
     } catch (e) {
-      print("Offline: Viagem salva apenas localmente. Erro API: \$e");
+      debugPrint("Offline: Viagem salva apenas localmente. Erro API: $e");
     }
   }
 
@@ -101,7 +101,7 @@ class TripRepository {
           }
         }
       } catch (e) {
-        print("Offline: Buscando viagens locais do SQLite. Erro API: \$e");
+        debugPrint("Offline: Buscando viagens locais do SQLite. Erro API: $e");
       }
     }
 
@@ -122,10 +122,10 @@ class TripRepository {
 
   Future<void> _syncDeleteTrip(String id) async {
     try {
-      await ApiClient.delete('/trips/\$id');
+      await ApiClient.delete('/trips/$id');
       await _dao.deleteTripHard(id);
     } catch (e) {
-      print("Offline: Deleção de viagem agendada. Erro API: \$e");
+      debugPrint("Offline: Deleção de viagem agendada. Erro API: $e");
     }
   }
 }

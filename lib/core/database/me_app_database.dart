@@ -156,9 +156,9 @@ class AppDatabase {
             await txn.insert('wallets', wallet);
           }
         });
-        print("Database seeded from JSON");
+        debugPrint("Database seeded from JSON");
       } catch (e) {
-        print("Error seeding database: $e");
+        debugPrint("Error seeding database: $e");
       }
     }
   }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../models/wallet.dart';
 import '../api/api_client.dart';
 import '../dao/wallet_dao.dart';
@@ -46,7 +47,7 @@ class WalletRepository {
           }
         }
       } catch (e) {
-        print("Offline: Buscando carteiras locais do SQLite. Erro API: $e");
+        debugPrint("Offline: Buscando carteiras locais do SQLite. Erro API: $e");
       }
     }
 

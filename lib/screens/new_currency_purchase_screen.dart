@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 
 import '../core/models/currency_transaction.dart';
-import '../core/models/wallet.dart';
-import '../core/dao/currency_transaction_dao.dart';
-import '../core/dao/wallet_dao.dart';
 import 'package:provider/provider.dart';
 import '../core/providers/wallet_provider.dart';
 import '../core/providers/auth_provider.dart';
@@ -330,8 +327,6 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                       return;
                     }
                     
-                    final double vet = totalBRL / amount;
-
                     final transaction = CurrencyTransaction(
                       id: widget.transaction?.id,
                       userId: widget.userId,

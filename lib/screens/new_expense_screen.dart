@@ -3,7 +3,6 @@ import '../core/theme/app_colors.dart';
 import '../core/models/expense.dart';
 import '../core/models/trip.dart';
 import '../core/models/wallet.dart';
-import '../core/models/user.dart';
 import '../core/repositories/expense_repository.dart';
 import 'package:provider/provider.dart';
 import '../core/providers/auth_provider.dart';
@@ -108,10 +107,12 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
   Future<void> _updateExchangeRate() async {
     if (_wallets != null) {
       if (_selectedCurrency == AppCurrencies.brl) {
-        if (mounted) setState(() {
-          _hasCurrencyVet = true;
-          if (_useAverageCost) _exchangeRateController.text = '1.0';
-        });
+        if (mounted) {
+          setState(() {
+            _hasCurrencyVet = true;
+            if (_useAverageCost) _exchangeRateController.text = '1.0';
+          });
+        }
       } else {
         final authProvider = context.read<AuthProvider>();
         final userId = authProvider.currentUser?.id;
@@ -168,7 +169,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
 
     final current = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
 
-    if (start != null && current.isBefore(start)) return true;
+    if (current.isBefore(start)) return true;
     if (end != null && current.isAfter(end)) return true;
 
     return false;
@@ -402,8 +403,8 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                             _updateExchangeRate();
                           }
                         } : null,
-                        activeColor: AppColors.moneyGreen,
-                        activeTrackColor: AppColors.moneyGreen.withOpacity(0.5),
+                        activeThumbColor: AppColors.moneyGreen,
+                        activeTrackColor: AppColors.moneyGreen.withValues(alpha: 0.5),
                       ),
                     ],
                   ),

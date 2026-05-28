@@ -94,9 +94,11 @@ class ExpenseDAO {
     DateTime? cutoffDate;
     if (endDateStr != null && endDateStr.isNotEmpty) {
       try {
-        final parts = endDateStr.split('/');
-        cutoffDate = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]), 23, 59, 59);
-      } catch(e) {}
+        final parsed = DateTime.parse(endDateStr);
+        cutoffDate = DateTime(parsed.year, parsed.month, parsed.day, 23, 59, 59);
+      } catch (e) {
+        // Ignorar
+      }
     }
     
     final txs = await db.query('currency_transactions', where: 'user_id = ? AND currency = ? AND is_deleted = 0', whereArgs: [userId, currency]);
@@ -106,9 +108,11 @@ class ExpenseDAO {
     for (var tx in txs) {
       DateTime txDate = DateTime.now();
       try {
-        final parts = (tx['date'] as String).split('/');
-        txDate = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
-      } catch(e) {}
+        final parsed = DateTime.parse(tx['date'] as String);
+        txDate = DateTime(parsed.year, parsed.month, parsed.day);
+      } catch (e) {
+        // Ignorar
+      }
       
       if (cutoffDate == null || txDate.isBefore(cutoffDate) || txDate.isAtSameMomentAs(cutoffDate)) {
         totalBought += (tx['amount'] as num?)?.toDouble() ?? 0.0;
@@ -131,9 +135,11 @@ class ExpenseDAO {
     final parsedTxs = txs.map((tx) {
       DateTime date = DateTime.now();
       try {
-        final parts = (tx['date'] as String).split('/');
-        date = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
-      } catch(e) {}
+        final parsed = DateTime.parse(tx['date'] as String);
+        date = DateTime(parsed.year, parsed.month, parsed.day);
+      } catch (e) {
+        // Ignorar
+      }
       return {
         'date': date,
         'amount': (tx['amount'] as num?)?.toDouble() ?? 0.0,
@@ -148,15 +154,17 @@ class ExpenseDAO {
       DateTime? cutoffDate;
       if (endDateStr != null && endDateStr.isNotEmpty) {
         try {
-          final parts = endDateStr.split('/');
-          cutoffDate = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]), 23, 59, 59);
-        } catch(e) {}
+          final parsed = DateTime.parse(endDateStr);
+          cutoffDate = DateTime(parsed.year, parsed.month, parsed.day, 23, 59, 59);
+        } catch (e) {
+          // Ignorar
+        }
       }
       
       double totalBought = 0.0;
       double totalBrl = 0.0;
       for (var tx in parsedTxs) {
-        if (cutoffDate == null || (tx['date'] as DateTime).isBefore(cutoffDate!) || (tx['date'] as DateTime).isAtSameMomentAs(cutoffDate!)) {
+        if (cutoffDate == null || (tx['date'] as DateTime).isBefore(cutoffDate) || (tx['date'] as DateTime).isAtSameMomentAs(cutoffDate)) {
           totalBought += tx['amount'] as double;
           totalBrl += tx['amount_brl'] as double;
         }

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 import '../models/expense.dart';
 import '../api/api_client.dart';
 import '../dao/expense_dao.dart';
@@ -57,7 +57,7 @@ class ExpenseRepository {
         await _dao.updateSyncStatus(expense.id!, 1);
       }
     } catch (e) {
-      print("Offline: Gasto salvo apenas localmente. Erro API: \$e");
+      debugPrint("Offline: Gasto salvo apenas localmente. Erro API: $e");
     }
   }
 
@@ -116,7 +116,7 @@ class ExpenseRepository {
           }
         }
       } catch (e) {
-        print("Offline: Buscando gastos locais do SQLite. Erro API: \$e");
+        debugPrint("Offline: Buscando gastos locais do SQLite. Erro API: $e");
       }
     }
 
@@ -140,7 +140,7 @@ class ExpenseRepository {
       await ApiClient.delete('/expenses/\$id');
       await _dao.deleteExpenseHard(id);
     } catch (e) {
-      print("Offline: Deleção de gasto agendada. Erro API: \$e");
+      debugPrint("Offline: Deleção de gasto agendada. Erro API: $e");
     }
   }
 
