@@ -12,6 +12,7 @@ import '../core/models/trip.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/providers/trip_provider.dart';
 import '../core/providers/wallet_provider.dart';
+import '../core/constants/app_categories.dart';
 
 // --- MOCK API E MODELOS ---
 // Estes modelos representam as informações que virão do seu back-end em Java futuramente via JSON.
@@ -26,42 +27,42 @@ class Category {
 
 final List<Category> categories = [
   Category(
-    name: 'Alimentação',
+    name: AppCategories.food,
     icon: Icons.restaurant,
     color: const Color(0xFFFF7043),
   ),
   Category(
-    name: 'Mercado',
+    name: AppCategories.market,
     icon: Icons.shopping_basket,
     color: const Color(0xFF66BB6A),
   ),
   Category(
-    name: 'Transporte',
+    name: AppCategories.transport,
     icon: Icons.directions_car,
     color: const Color(0xFF42A5F5),
   ),
   Category(
-    name: 'Hospedagem',
+    name: AppCategories.lodging,
     icon: Icons.hotel,
     color: const Color(0xFF7986CB),
   ),
   Category(
-    name: 'Lazer',
+    name: AppCategories.leisure,
     icon: Icons.confirmation_number,
     color: const Color(0xFFEC407A),
   ),
   Category(
-    name: 'Compras',
+    name: AppCategories.shopping,
     icon: Icons.local_mall,
     color: const Color(0xFF26C6DA),
   ),
   Category(
-    name: 'Burocracia (visto, taxa, seguro)',
+    name: AppCategories.bureaucracy,
     icon: Icons.assignment,
     color: const Color(0xFF78909C),
   ),
   Category(
-    name: 'Saúde (farmácia, consulta)',
+    name: AppCategories.health,
     icon: Icons.local_hospital,
     color: const Color(0xFFFFCA28),
   ),

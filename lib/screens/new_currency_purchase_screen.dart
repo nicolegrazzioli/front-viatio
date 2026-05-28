@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../core/providers/wallet_provider.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/providers/trip_provider.dart';
+import '../core/constants/app_currencies.dart';
 
 class NewCurrencyPurchaseScreen extends StatefulWidget {
   final String userId;
@@ -28,9 +29,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _totalBRLController = TextEditingController();
 
-  
-  String _selectedCurrency = 'EUR';
-  final List<String> _currencies = ['BRL', 'USD', 'EUR'];
+  String _selectedCurrency = AppCurrencies.eur;
   
   String _selectedOrigin = 'Wise';
   final List<String> _origins = ['Wise', 'Revolut', 'Picnic', 'Inter', 'Papel/Câmbio'];
@@ -205,7 +204,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                             setState(() => _selectedCurrency = newValue);
                           }
                         },
-                        items: _currencies.map<DropdownMenuItem<String>>((String value) {
+                        items: AppCurrencies.all.map<DropdownMenuItem<String>>((String value) {
                           return DropdownMenuItem<String>(value: value, child: Text(value));
                         }).toList(),
                       ),

@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 import '../core/providers/trip_provider.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/providers/wallet_provider.dart';
+import '../core/constants/app_currencies.dart';
 
 class TripDetailsScreen extends StatefulWidget {
   final Trip trip;
@@ -312,9 +313,9 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                     itemBuilder: (context, index) {
                       final expense = _filteredAndSortedExpenses[index];
                       final cat = categories.firstWhere((c) => c.name == expense.category, orElse: () => categories[0]);
-                      final currencySymbol = (expense.currency == 'EUR' || expense.currency == 'Euro') 
+                      final currencySymbol = AppCurrencies.isEuro(expense.currency)
                           ? '€' 
-                          : ((expense.currency == 'USD' || expense.currency == 'Dólar') ? '\$' : 'R\$');
+                          : (AppCurrencies.isUsd(expense.currency) ? '\$' : 'R\$');
                       
                       return Column(
                         children: [

@@ -10,6 +10,8 @@ import '../core/providers/auth_provider.dart';
 import '../core/providers/wallet_provider.dart';
 import '../core/providers/trip_provider.dart';
 import '../core/providers/expense_provider.dart';
+import '../core/constants/app_categories.dart';
+import '../core/constants/app_currencies.dart';
 
 class NewExpenseScreen extends StatefulWidget {
   final Trip trip;
@@ -27,19 +29,13 @@ class NewExpenseScreen extends StatefulWidget {
 }
 
 class _NewExpenseScreenState extends State<NewExpenseScreen> {
-  String _selectedCurrency = 'BRL';
-  final List<String> _currencies = ['BRL', 'USD', 'EUR'];
+  String _selectedCurrency = AppCurrencies.brl;
   List<Wallet>? _wallets;
   
   DateTime? _selectedDate = DateTime.now();
   bool _useAverageCost = true;
   bool _hasCurrencyVet = true;
   String? _selectedCategory;
-  
-  final List<String> _categories = [
-    'Alimentação', 'Mercado', 'Transporte', 'Hospedagem', 
-    'Lazer', 'Compras', 'Burocracia (visto, taxa, seguro)', 'Saúde (farmácia, consulta)'
-  ];
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -89,7 +85,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
   void _checkNegativeBalance() {
     if (_wallets == null) return;
     
-    if (_selectedCurrency == 'BRL') {
+    if (_selectedCurrency == AppCurrencies.brl) {
       if (_willBeNegative) {
         setState(() {
           _willBeNegative = false;
@@ -116,7 +112,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
 
   Future<void> _updateExchangeRate() async {
     if (_wallets != null) {
-      if (_selectedCurrency == 'BRL') {
+      if (_selectedCurrency == AppCurrencies.brl) {
         if (mounted) setState(() {
           _hasCurrencyVet = true;
           if (_useAverageCost) _exchangeRateController.text = '1.0';
@@ -329,7 +325,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                             _checkNegativeBalance();
                           }
                         },
-                        items: _currencies.map<DropdownMenuItem<String>>((String value) {
+                        items: AppCurrencies.all.map<DropdownMenuItem<String>>((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value),
@@ -449,9 +445,9 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _categories.length,
+              itemCount: AppCategories.all.length,
               itemBuilder: (context, index) {
-                final category = _categories[index];
+                final category = AppCategories.all[index];
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -505,7 +501,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preencha título, valor e categoria')));
                       return;
                     }
-                    if (!_useAverageCost && _selectedCurrency != 'BRL' && _exchangeRateController.text.trim().isEmpty) {
+                    if (!_useAverageCost && _selectedCurrency != AppCurrencies.brl && _exchangeRateController.text.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor, informe o valor do câmbio.')));
                       return;
                     }

@@ -9,6 +9,7 @@ import 'new_currency_purchase_screen.dart';
 import '../core/models/currency_transaction.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/providers/wallet_provider.dart';
+import '../core/constants/app_currencies.dart';
 
 class BalancesScreen extends StatefulWidget {
   const BalancesScreen({super.key});
@@ -204,8 +205,8 @@ class _BalancesScreenState extends State<BalancesScreen> {
   }
 
   Color _getCurrencyColor(String currency) {
-    if (currency == 'Euro' || currency == 'EUR') return const Color(0xFFFFD700); // Gold
-    if (currency == 'Dólar' || currency == 'USD') return AppColors.dollarColor;
+    if (AppCurrencies.isEuro(currency)) return const Color(0xFFFFD700); // Gold
+    if (AppCurrencies.isUsd(currency)) return AppColors.dollarColor;
     
     // Gera uma cor consistente baseada no nome da moeda
     int hash = 0;
@@ -217,15 +218,15 @@ class _BalancesScreenState extends State<BalancesScreen> {
   }
 
   String _getCurrencyCode(String currency) {
-    if (currency == 'Euro' || currency == 'EUR') return 'EUR';
-    if (currency == 'Dólar' || currency == 'USD') return 'USD';
+    if (AppCurrencies.isEuro(currency)) return AppCurrencies.eur;
+    if (AppCurrencies.isUsd(currency)) return AppCurrencies.usd;
     if (currency == 'Libra' || currency == 'GBP') return 'GBP';
     return currency.toUpperCase().substring(0, currency.length >= 3 ? 3 : currency.length);
   }
 
   String _getCurrencySymbol(String currency) {
-    if (currency == 'Euro' || currency == 'EUR') return '€';
-    if (currency == 'Dólar' || currency == 'USD') return 'US\$';
+    if (AppCurrencies.isEuro(currency)) return '€';
+    if (AppCurrencies.isUsd(currency)) return 'US\$';
     if (currency == 'Libra' || currency == 'GBP') return '£';
     return _getCurrencyCode(currency);
   }
