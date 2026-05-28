@@ -13,6 +13,7 @@ import '../core/providers/auth_provider.dart';
 import '../core/providers/trip_provider.dart';
 import '../core/providers/wallet_provider.dart';
 import '../core/constants/app_categories.dart';
+import '../core/utils/numeric_helpers.dart';
 
 // --- MOCK API E MODELOS ---
 // Estes modelos representam as informações que virão do seu back-end em Java futuramente via JSON.
@@ -254,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 Text(
-                                  "R\$ ${walletProvider.totalBalanceBrl.toStringAsFixed(2).replaceAll('.', ',')}",
+                                  "R\$ ${NumericHelpers.formatBrl(walletProvider.totalBalanceBrl)}",
                                   style: const TextStyle(
                                     color: AppColors.moneyGreen,
                                     fontSize: 24,
@@ -393,7 +394,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
                 Text(
-                  "R\$ ${tripAmount.toStringAsFixed(2)}",
+                  "R\$ ${NumericHelpers.formatCurrency(tripAmount)}",
                   style: const TextStyle(
                     color: AppColors.moneyGreen,
                     fontSize: 22,

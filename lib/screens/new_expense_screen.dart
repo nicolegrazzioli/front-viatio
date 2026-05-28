@@ -12,6 +12,7 @@ import '../core/providers/trip_provider.dart';
 import '../core/providers/expense_provider.dart';
 import '../core/constants/app_categories.dart';
 import '../core/constants/app_currencies.dart';
+import '../core/utils/numeric_helpers.dart';
 
 class NewExpenseScreen extends StatefulWidget {
   final Trip trip;
@@ -99,8 +100,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
       orElse: () => Wallet(userId: '0', currency: _selectedCurrency, balance: 0.0, averageVet: 0.0)
     );
 
-    final amountText = _amountController.text.replaceAll(',', '.');
-    final amount = double.tryParse(amountText) ?? 0.0;
+    final amount = NumericHelpers.parseAmount(_amountController.text);
 
     final willBeNegative = (currentWallet.balance - amount) < 0;
     if (_willBeNegative != willBeNegative) {
@@ -129,7 +129,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                 _useAverageCost = false;
                 _exchangeRateController.text = '';
               } else if (_useAverageCost) {
-                _exchangeRateController.text = tripVet.toStringAsFixed(2);
+                _exchangeRateController.text = NumericHelpers.formatCurrency(tripVet);
               }
             });
           }
@@ -506,8 +506,8 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                       return;
                     }
 
-                    final double amount = double.tryParse(_amountController.text.replaceAll(',', '.')) ?? 0.0;
-                    final double exchangeRate = double.tryParse(_exchangeRateController.text.replaceAll(',', '.')) ?? 1.0;
+                    final double amount = NumericHelpers.parseAmount(_amountController.text);
+                    final double exchangeRate = NumericHelpers.parseAmount(_exchangeRateController.text);
                     final double amountBrl = amount * exchangeRate;
                     final DateTime dt = _selectedDate ?? DateTime.now();
 

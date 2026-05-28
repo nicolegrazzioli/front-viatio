@@ -10,6 +10,7 @@ import '../core/models/currency_transaction.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/providers/wallet_provider.dart';
 import '../core/constants/app_currencies.dart';
+import '../core/utils/numeric_helpers.dart';
 
 class BalancesScreen extends StatefulWidget {
   const BalancesScreen({super.key});
@@ -330,9 +331,9 @@ class _BalancesScreenState extends State<BalancesScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text("${_getCurrencySymbol(transaction.currency)} ${transaction.amount.toStringAsFixed(2)}", style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500)),
+                    Text("${_getCurrencySymbol(transaction.currency)} ${NumericHelpers.formatCurrency(transaction.amount)}", style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 4),
-                    Text("R\$ ${transaction.amountBrl.toStringAsFixed(2)}", style: const TextStyle(color: AppColors.offWhite, fontSize: 14)),
+                    Text("R\$ ${NumericHelpers.formatCurrency(transaction.amountBrl)}", style: const TextStyle(color: AppColors.offWhite, fontSize: 14)),
                   ],
                 ),
               ],
@@ -367,7 +368,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
           children: [
             const SizedBox(height: 16),
             Text(
-              "R\$ ${walletProvider.totalBalanceBrl.toStringAsFixed(2)}", // Soma de todas as moedas convertidas pelo VET
+              "R\$ ${NumericHelpers.formatCurrency(walletProvider.totalBalanceBrl)}", // Soma de todas as moedas convertidas pelo VET
               style: const TextStyle(
                 color: AppColors.moneyGreen,
                 fontSize: 30,
@@ -406,9 +407,9 @@ class _BalancesScreenState extends State<BalancesScreen> {
                     width: MediaQuery.of(context).size.width * 0.8, // Largura mais centralizada para 1 item
                     child: _buildCurrencyCard(
                       _getCurrencyCode(wallets[0].currency), 
-                      wallets[0].balance.toStringAsFixed(2), 
-                      "R\$ ${(wallets[0].balance * wallets[0].averageVet).toStringAsFixed(2)}", 
-                      "R\$ ${wallets[0].averageVet.toStringAsFixed(2)}", 
+                      NumericHelpers.formatCurrency(wallets[0].balance), 
+                      "R\$ ${NumericHelpers.formatCurrency(wallets[0].balance * wallets[0].averageVet)}", 
+                      "R\$ ${NumericHelpers.formatCurrency(wallets[0].averageVet)}", 
                       _getCurrencyColor(wallets[0].currency),
                     ),
                   ),
@@ -433,9 +434,9 @@ class _BalancesScreenState extends State<BalancesScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: _buildCurrencyCard(
                             _getCurrencyCode(wallet.currency), 
-                            wallet.balance.toStringAsFixed(2), 
-                            "R\$ ${converted.toStringAsFixed(2)}", 
-                            "R\$ ${wallet.averageVet.toStringAsFixed(2)}", 
+                            NumericHelpers.formatCurrency(wallet.balance), 
+                            "R\$ ${NumericHelpers.formatCurrency(converted)}", 
+                            "R\$ ${NumericHelpers.formatCurrency(wallet.averageVet)}", 
                             color,
                           ),
                         );

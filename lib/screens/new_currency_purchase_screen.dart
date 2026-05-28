@@ -10,6 +10,7 @@ import '../core/providers/wallet_provider.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/providers/trip_provider.dart';
 import '../core/constants/app_currencies.dart';
+import '../core/utils/numeric_helpers.dart';
 
 class NewCurrencyPurchaseScreen extends StatefulWidget {
   final String userId;
@@ -78,10 +79,10 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
   }
 
   String get _calculatedVET {
-    final amount = double.tryParse(_amountController.text.replaceAll(',', '.')) ?? 0;
-    final totalBRL = double.tryParse(_totalBRLController.text.replaceAll(',', '.')) ?? 0;
+    final amount = NumericHelpers.parseAmount(_amountController.text);
+    final totalBRL = NumericHelpers.parseAmount(_totalBRLController.text);
     if (amount > 0 && totalBRL > 0) {
-      return "VET: R\$ ${(totalBRL / amount).toStringAsFixed(2).replaceAll('.', ',')}";
+      return "VET: R\$ ${NumericHelpers.formatBrl(totalBRL / amount)}";
     }
     return "VET: R\$ 0,00";
   }
@@ -326,8 +327,8 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                       return;
                     }
                     
-                    final double amount = double.tryParse(_amountController.text.replaceAll(',', '.')) ?? 0;
-                    final double totalBRL = double.tryParse(_totalBRLController.text.replaceAll(',', '.')) ?? 0;
+                    final double amount = NumericHelpers.parseAmount(_amountController.text);
+                    final double totalBRL = NumericHelpers.parseAmount(_totalBRLController.text);
                     
                     if (amount <= 0 || totalBRL <= 0) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Valores devem ser maiores que zero')));

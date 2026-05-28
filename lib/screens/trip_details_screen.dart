@@ -16,6 +16,7 @@ import '../core/providers/trip_provider.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/providers/wallet_provider.dart';
 import '../core/constants/app_currencies.dart';
+import '../core/utils/numeric_helpers.dart';
 
 class TripDetailsScreen extends StatefulWidget {
   final Trip trip;
@@ -249,7 +250,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
               const SizedBox(height: 16),
             // Valor Total Dinâmico
             Text(
-              "R\$ ${_totalAmount.toStringAsFixed(2)}",
+              "R\$ ${NumericHelpers.formatCurrency(_totalAmount)}",
               style: const TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
@@ -330,7 +331,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                                 ),
                               ),
                             ),
-                          _buildExpenseItem(expense, cat, "$currencySymbol ${expense.amount.toStringAsFixed(2)}", "R\$ ${expense.amountBrl.toStringAsFixed(2)}"),
+                          _buildExpenseItem(expense, cat, "$currencySymbol ${NumericHelpers.formatCurrency(expense.amount)}", "R\$ ${NumericHelpers.formatCurrency(expense.amountBrl)}"),
                           const Divider(color: AppColors.silverBorder, height: 1),
                           if (index == _filteredAndSortedExpenses.length - 1)
                             const SizedBox(height: 80), // Padding extra no final
