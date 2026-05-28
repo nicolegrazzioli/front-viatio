@@ -58,12 +58,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
       _exchangeRateController.text = data.exchangeRate?.toString() ?? '1.0';
 
       _useAverageCost = data.isAverageCost;
-      try {
-        final dateParts = data.date.split('/');
-        _selectedDate = DateTime(int.parse(dateParts[2]), int.parse(dateParts[1]), int.parse(dateParts[0]));
-      } catch (e) {
-        _selectedDate = DateTime.now();
-      }
+      _selectedDate = data.date;
     }
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -167,19 +162,9 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
 
   bool _isDateOutsideTrip() {
     if (_selectedDate == null) return false;
-    
-    DateTime? parseDate(String? d) {
-      if (d == null || d.isEmpty) return null;
-      try {
-        final parts = d.split('/');
-        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
-      } catch (e) {
-        return null;
-      }
-    }
 
-    final start = parseDate(widget.trip.startDate);
-    final end = parseDate(widget.trip.endDate);
+    final start = widget.trip.startDate;
+    final end = widget.trip.endDate;
 
     final current = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
 
@@ -518,7 +503,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                       amount: amount,
                       currency: _selectedCurrency,
                       category: _selectedCategory!,
-                      date: "${dt.day.toString().padLeft(2,'0')}/${dt.month.toString().padLeft(2,'0')}/${dt.year}",
+                      date: dt,
                       isAverageCost: _useAverageCost,
                       exchangeRate: exchangeRate,
                       amountBrl: amountBrl,

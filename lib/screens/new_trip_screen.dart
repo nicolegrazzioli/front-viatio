@@ -26,15 +26,8 @@ class _NewTripScreenState extends State<NewTripScreen> {
     super.initState();
     if (widget.trip != null) {
       _titleController.text = widget.trip!.title;
-      try {
-        final startParts = widget.trip!.startDate.split('/');
-        _startDate = DateTime(int.parse(startParts[2]), int.parse(startParts[1]), int.parse(startParts[0]));
-        
-        final endParts = widget.trip!.endDate?.split('/');
-        _endDate = DateTime(int.parse(endParts![2]), int.parse(endParts[1]), int.parse(endParts[0]));
-      } catch (e) {
-        _startDate = DateTime.now();
-      }
+      _startDate = widget.trip!.startDate;
+      _endDate = widget.trip!.endDate;
       
       final coverMatch = _covers.firstWhere((c) => c["url"] == widget.trip!.coverType, orElse: () => {"name": "Praia"});
       _selectedCover = coverMatch["name"]!;
@@ -222,8 +215,8 @@ class _NewTripScreenState extends State<NewTripScreen> {
                     id: widget.trip?.id,
                     userId: widget.userId ?? widget.trip!.userId, 
                     title: _titleController.text.trim(),
-                    startDate: "${_startDate.day.toString().padLeft(2,'0')}/${_startDate.month.toString().padLeft(2,'0')}/${_startDate.year}",
-                    endDate: _endDate != null ? "${_endDate!.day.toString().padLeft(2,'0')}/${_endDate!.month.toString().padLeft(2,'0')}/${_endDate!.year}" : null,
+                    startDate: _startDate,
+                    endDate: _endDate,
                     coverType: _covers.firstWhere((c) => c["name"] == _selectedCover)["url"]!,
                   );
 

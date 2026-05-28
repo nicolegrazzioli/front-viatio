@@ -1,3 +1,5 @@
+import '../utils/date_helpers.dart';
+
 class CurrencyTransaction {
   final String? id;
   final String userId;
@@ -5,7 +7,7 @@ class CurrencyTransaction {
   final String currency;
   final double amountBrl;
   final String source;
-  final String date;
+  final DateTime date;
   final double vetRate;
 
   final String? photoPath;
@@ -31,7 +33,7 @@ class CurrencyTransaction {
       'currency': currency,
       'amount_brl': amountBrl,
       'source': source,
-      'date': date,
+      'date': date.toIso8601String(),
       'vet_rate': vetRate,
 
       'photo_path': photoPath,
@@ -46,7 +48,7 @@ class CurrencyTransaction {
       currency: map['currency'],
       amountBrl: map['amount_brl'],
       source: map['source'],
-      date: map['date'],
+      date: DateHelpers.parseDate(map['date']) ?? DateTime.now(),
       vetRate: map['vet_rate'],
 
       photoPath: map['photo_path'],

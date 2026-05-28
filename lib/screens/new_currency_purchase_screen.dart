@@ -57,12 +57,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
       _selectedOrigin = origin;
       
 
-      try {
-        final dateParts = data.date.split('/');
-        _selectedDate = DateTime(int.parse(dateParts[2]), int.parse(dateParts[1]), int.parse(dateParts[0]));
-      } catch (e) {
-        _selectedDate = DateTime.now();
-      }
+      _selectedDate = data.date;
     }
   }
 
@@ -344,9 +339,8 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                       currency: _selectedCurrency,
                       amountBrl: totalBRL,
                       source: _selectedOrigin,
-                      date: "${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}",
-                      vetRate: vet,
-
+                      date: _selectedDate,
+                      vetRate: totalBRL / amount,
                     );
                     
                     final walletProvider = context.read<WalletProvider>();

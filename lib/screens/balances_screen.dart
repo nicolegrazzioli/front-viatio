@@ -11,6 +11,7 @@ import '../core/providers/auth_provider.dart';
 import '../core/providers/wallet_provider.dart';
 import '../core/constants/app_currencies.dart';
 import '../core/utils/numeric_helpers.dart';
+import '../core/utils/date_helpers.dart';
 
 class BalancesScreen extends StatefulWidget {
   const BalancesScreen({super.key});
@@ -28,25 +29,16 @@ class _BalancesScreenState extends State<BalancesScreen> {
   String? _filterCurrency;
   String? _filterSource;
 
-  DateTime _parseDate(String dateStr) {
-    try {
-      final parts = dateStr.split('/');
-      if (parts.length == 3) {
-        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
-      }
-    } catch (e) {
-      // ignore
-    }
-    return DateTime.now();
-  }
+
 
   List<CurrencyTransaction> _getFilteredAndSortedTransactions(List<CurrencyTransaction>? transactions) {
     if (transactions == null) return [];
     var list = transactions.where((t) {
       final q = _searchQuery.toLowerCase();
+      final fd = DateHelpers.formatDate(t.date);
       final matchesQuery = t.currency.toLowerCase().contains(q) ||
                            t.source.toLowerCase().contains(q) ||
-                           t.date.contains(q);
+                           fd.contains(q);
       
       final matchesCurrency = _filterCurrency == null || t.currency == _filterCurrency;
       final matchesSource = _filterSource == null || t.source == _filterSource;
@@ -56,15 +48,11 @@ class _BalancesScreenState extends State<BalancesScreen> {
     
     list.sort((a, b) {
       if (_sortOption == 'Recentes (Padrão)') {
-        final d1 = _parseDate(a.date);
-        final d2 = _parseDate(b.date);
-        final dateCompare = d2.compareTo(d1);
+        final dateCompare = b.date.compareTo(a.date);
         if (dateCompare != 0) return dateCompare;
         return (b.id ?? '').compareTo(a.id ?? ''); 
       } else if (_sortOption == 'Antigos') {
-        final d1 = _parseDate(a.date);
-        final d2 = _parseDate(b.date);
-        final dateCompare = d1.compareTo(d2);
+        final dateCompare = a.date.compareTo(b.date);
         if (dateCompare != 0) return dateCompare;
         return (a.id ?? '').compareTo(b.id ?? '');
       } else if (_sortOption == 'Maior Valor') {
@@ -513,7 +501,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
                           Padding(
                             padding: const EdgeInsets.only(top: 24, bottom: 8),
                             child: Text(
-                              transaction.date,
+                              DateHelpers.formatDate(transaction.date),
                               style: const TextStyle(color: Colors.white, fontSize: 16),
                             ),
                           ),

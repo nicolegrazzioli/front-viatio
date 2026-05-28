@@ -7,21 +7,15 @@ import '../dao/expense_dao.dart';
 class ExpenseRepository {
   final ExpenseDAO _dao = ExpenseDAO();
 
-  String _toApiDate(String date) {
-    try {
-      final d = DateFormat('dd/MM/yyyy').parse(date);
-      return DateFormat('yyyy-MM-dd').format(d);
-    } catch (e) {
-      return date;
-    }
+  String _toApiDate(DateTime date) {
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
-  String _fromApiDate(String date) {
+  DateTime _fromApiDate(String date) {
     try {
-      final d = DateFormat('yyyy-MM-dd').parse(date);
-      return DateFormat('dd/MM/yyyy').format(d);
+      return DateTime.parse(date);
     } catch (e) {
-      return date;
+      return DateTime.now();
     }
   }
 

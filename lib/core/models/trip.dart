@@ -1,9 +1,11 @@
+import '../utils/date_helpers.dart';
+
 class Trip {
   final String? id;
   final String userId;
   final String title;
-  final String startDate;
-  final String? endDate;
+  final DateTime startDate;
+  final DateTime? endDate;
   final String coverType;
 
   Trip({
@@ -20,8 +22,8 @@ class Trip {
       'id': id,
       'user_id': userId,
       'title': title,
-      'start_date': startDate,
-      'end_date': endDate,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate?.toIso8601String(),
       'cover_type': coverType,
     };
   }
@@ -31,8 +33,8 @@ class Trip {
       id: map['id']?.toString(),
       userId: map['user_id']?.toString() ?? '',
       title: map['title'],
-      startDate: map['start_date'],
-      endDate: map['end_date'],
+      startDate: DateHelpers.parseDate(map['start_date']) ?? DateTime.now(),
+      endDate: DateHelpers.parseDate(map['end_date']),
       coverType: map['cover_type'],
     );
   }

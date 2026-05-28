@@ -14,6 +14,7 @@ import '../core/providers/trip_provider.dart';
 import '../core/providers/wallet_provider.dart';
 import '../core/constants/app_categories.dart';
 import '../core/utils/numeric_helpers.dart';
+import '../core/utils/date_helpers.dart';
 
 // --- MOCK API E MODELOS ---
 // Estes modelos representam as informações que virão do seu back-end em Java futuramente via JSON.
@@ -99,38 +100,26 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  DateTime _parseDate(String dateStr) {
-    try {
-      final parts = dateStr.split('/');
-      if (parts.length == 3) {
-        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
-      }
-    } catch (e) {
-      // ignore
-    }
-    return DateTime.now();
-  }
+
 
   List<Trip> _getFilteredAndSortedTrips(List<Trip>? trips, Map<String, double> amounts) {
     if (trips == null) return [];
     var list = trips.where((t) {
       final q = _searchQuery.toLowerCase();
+      final sd = DateHelpers.formatDate(t.startDate);
+      final ed = t.endDate != null ? DateHelpers.formatDate(t.endDate!) : '';
       return t.title.toLowerCase().contains(q) ||
-             t.startDate.contains(q) ||
-             (t.endDate?.contains(q) ?? false);
+             sd.contains(q) ||
+             ed.contains(q);
     }).toList();
     
     list.sort((a, b) {
       if (_sortOption == 'Recentes (Padrão)') {
-        final d1 = _parseDate(a.startDate);
-        final d2 = _parseDate(b.startDate);
-        final dateCompare = d2.compareTo(d1);
+        final dateCompare = b.startDate.compareTo(a.startDate);
         if (dateCompare != 0) return dateCompare;
         return (b.id ?? '').compareTo(a.id ?? '');
       } else if (_sortOption == 'Antigos') {
-        final d1 = _parseDate(a.startDate);
-        final d2 = _parseDate(b.startDate);
-        final dateCompare = d1.compareTo(d2);
+        final dateCompare = a.startDate.compareTo(b.startDate);
         if (dateCompare != 0) return dateCompare;
         return (a.id ?? '').compareTo(b.id ?? '');
       } else if (_sortOption == 'Maior Gasto') {
@@ -390,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  trip.endDate != null ? "${trip.startDate} - ${trip.endDate}" : trip.startDate,
+                  trip.endDate != null ? "${DateHelpers.formatDate(trip.startDate)} - ${DateHelpers.formatDate(trip.endDate!)}" : DateHelpers.formatDate(trip.startDate),
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
                 Text(

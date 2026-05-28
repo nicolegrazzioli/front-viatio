@@ -1,3 +1,5 @@
+import '../utils/date_helpers.dart';
+
 class Expense {
   final String? id;
   final String tripId;
@@ -5,7 +7,7 @@ class Expense {
   final double amount;
   final String currency;
   final String category;
-  final String date;
+  final DateTime date;
   final bool isAverageCost;
   final double? exchangeRate;
   final double amountBrl;
@@ -35,7 +37,7 @@ class Expense {
       'amount': amount,
       'currency': currency,
       'category': category,
-      'date': date,
+      'date': date.toIso8601String(),
       'is_average_cost': isAverageCost ? 1 : 0, // SQLite armazena booleanos como 0 ou 1
       'exchange_rate': exchangeRate,
       'amount_brl': amountBrl,
@@ -52,7 +54,7 @@ class Expense {
       amount: map['amount'],
       currency: map['currency'],
       category: map['category'],
-      date: map['date'],
+      date: DateHelpers.parseDate(map['date']) ?? DateTime.now(),
       isAverageCost: map['is_average_cost'] == 1,
       exchangeRate: map['exchange_rate'],
       amountBrl: map['amount_brl'],
