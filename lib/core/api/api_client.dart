@@ -12,6 +12,7 @@ class ApiClient {
   );
 
   static DateTime? _lastErrorTime;
+  static VoidCallback? onUnauthorized;
 
   static void _showGlobalError(String message) {
     if (_lastErrorTime != null && DateTime.now().difference(_lastErrorTime!).inSeconds < 5) {
@@ -57,6 +58,7 @@ class ApiClient {
       }
       if (response.statusCode == 401 || response.statusCode == 403) {
         _showGlobalError("Sessão expirada ou acesso negado.");
+        onUnauthorized?.call();
         throw Exception("Unauthorized ${response.statusCode}");
       }
       return response;

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../repositories/user_repository.dart';
 import '../api/sync_service.dart';
+import '../api/api_client.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;
@@ -9,6 +10,10 @@ class AuthProvider extends ChangeNotifier {
 
   User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+
+  AuthProvider() {
+    ApiClient.onUnauthorized = logout;
+  }
 
   Future<void> initSession() async {
     _isLoading = true;
