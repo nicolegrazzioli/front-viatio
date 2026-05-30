@@ -77,7 +77,7 @@ class ExpenseRepository {
   Future<List<Expense>> getExpensesByTrip(String tripId, {bool fetchApi = true}) async {
     if (fetchApi) {
       try {
-        final response = await ApiClient.get('/expenses/trip/\$tripId');
+        final response = await ApiClient.get('/expenses/trip/$tripId');
         if (response.statusCode == 200) {
           final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
           final List<String> apiIds = [];
@@ -137,7 +137,7 @@ class ExpenseRepository {
 
   Future<void> _syncDeleteExpense(String id) async {
     try {
-      await ApiClient.delete('/expenses/\$id');
+      await ApiClient.delete('/expenses/$id');
       await _dao.deleteExpenseHard(id);
     } catch (e) {
       debugPrint("Offline: Deleção de gasto agendada. Erro API: $e");

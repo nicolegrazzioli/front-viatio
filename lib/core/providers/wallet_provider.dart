@@ -60,6 +60,8 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> recalculateWallet(String userId, String currency) async {
+    if (currency == AppCurrencies.brl) return;
+    
     final db = await AppDatabase().database;
     final walletRepo = WalletRepository();
     
