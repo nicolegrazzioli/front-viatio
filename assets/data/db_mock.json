@@ -5,7 +5,9 @@
       "name": "Usuário Teste",
       "email": "a@a",
       "password": "a",
-      "profile_image": null
+      "profile_image": null,
+      "is_synced": 0,
+      "is_deleted": 0
     }
   ],
   "trips": [
@@ -15,7 +17,9 @@
       "title": "Férias na Europa",
       "start_date": "2024-06-01",
       "end_date": "2024-06-15",
-      "cover_type": "mountain"
+      "cover_type": "mountain",
+      "is_synced": 0,
+      "is_deleted": 0
     },
     {
       "id": "2",
@@ -23,7 +27,9 @@
       "title": "Trabalho em Nova York",
       "start_date": "2024-08-10",
       "end_date": "2024-08-15",
-      "cover_type": "city"
+      "cover_type": "city",
+      "is_synced": 0,
+      "is_deleted": 0
     }
   ],
   "expenses": [
@@ -38,7 +44,9 @@
       "is_average_cost": 1,
       "exchange_rate": null,
       "amount_brl": 275.50,
-      "photo_path": null
+      "photo_path": null,
+      "is_synced": 0,
+      "is_deleted": 0
     }
   ],
   "currency_transactions": [
@@ -51,7 +59,9 @@
       "source": "Wise",
       "date": "2024-05-20",
       "vet_rate": 5.50,
-      "photo_path": null
+      "photo_path": null,
+      "is_synced": 0,
+      "is_deleted": 0
     }
   ],
   "wallets": [
@@ -59,13 +69,17 @@
       "user_id": "1",
       "currency": "EUR",
       "balance": 950.0,
-      "average_vet": 5.50
+      "average_vet": 5.50,
+      "is_synced": 0,
+      "is_deleted": 0
     },
     {
       "user_id": "1",
       "currency": "USD",
       "balance": 0.0,
-      "average_vet": 0.0
+      "average_vet": 0.0,
+      "is_synced": 0,
+      "is_deleted": 0
     }
   ]
 }

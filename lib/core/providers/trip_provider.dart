@@ -22,7 +22,7 @@ class TripProvider extends ChangeNotifier {
     Map<String, double> amounts = {};
     
     for (var trip in dbTrips) {
-      final expenses = await expenseRepo.getExpensesByTrip(trip.id!, fetchApi: false);
+      final expenses = await expenseRepo.getExpensesByTrip(trip.id!, fetchApi: fetchApi);
       double total = 0.0;
       for (var exp in expenses) {
         total += exp.amountBrl;
