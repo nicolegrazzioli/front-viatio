@@ -28,6 +28,7 @@ Por se tratar de um **MVP** (Produto Mínimo Viável), o foco do desenvolvimento
 
 - **Upload de Imagens (Foto de Perfil e Comprovantes):** O banco de dados (nuvem e local) já prevê as colunas `profile_image` e `photo_path`. Porém, a UI e a lógica de envio no Flutter não foram feitas. Motivo: pedir permissões de galeria/câmera, gerenciar arquivos pesados no cache local offline, e sincronizar blobs para nuvem (AWS S3) adicionaria muito risco e esforço.
 - **Página Detalhada do Usuário:** A prioridade é a tela de viagens. A gestão de conta (trocar e-mail, senha) ficará para versões posteriores.
+- **Login com Google (Próximo Passo):** Em vez de manter o login/cadastro com e-mail/senha, a transição para Login Único com Google simplificará o sistema (removendo telas de cadastro, recuperação de senha, etc.) e elevará o nível de segurança, eliminando a necessidade de gerenciar ou armazenar senhas na nuvem ou no SQLite local.
 
 ## 4. Como Configurar e Rodar
 

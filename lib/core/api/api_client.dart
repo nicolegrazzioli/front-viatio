@@ -6,10 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../globals.dart';
 
 class ApiClient {
-  static const String baseUrl = String.fromEnvironment(
-    'API_URL',
-    defaultValue: 'http://localhost:8081',
-  );
+  static String get _effectiveBaseUrl {
+    const envUrl = String.fromEnvironment('API_URL', defaultValue: 'http://localhost:8081');
+    return envUrl.trim().isEmpty ? 'http://localhost:8081' : envUrl;
+  }
 
   static DateTime? _lastErrorTime;
   static VoidCallback? onUnauthorized;
@@ -45,7 +45,7 @@ class ApiClient {
     
     return {
       'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer \$token',
+      if (token != null) 'Authorization': 'Bearer $token',
     };
   }
 
@@ -72,13 +72,13 @@ class ApiClient {
 
   static Future<http.Response> get(String endpoint) async {
     final headers = await _getHeaders();
-    return _executeRequest(() => http.get(Uri.parse('\$baseUrl\$endpoint'), headers: headers));
+    return _executeRequest(() => http.get(Uri.parse('$_effectiveBaseUrl$endpoint'), headers: headers));
   }
 
   static Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final headers = await _getHeaders();
     return _executeRequest(() => http.post(
-      Uri.parse('\$baseUrl\$endpoint'),
+      Uri.parse('$_effectiveBaseUrl$endpoint'),
       headers: headers,
       body: jsonEncode(body),
     ));
@@ -87,7 +87,7 @@ class ApiClient {
   static Future<http.Response> put(String endpoint, Map<String, dynamic> body) async {
     final headers = await _getHeaders();
     return _executeRequest(() => http.put(
-      Uri.parse('\$baseUrl\$endpoint'),
+      Uri.parse('$_effectiveBaseUrl$endpoint'),
       headers: headers,
       body: jsonEncode(body),
     ));
@@ -95,6 +95,6 @@ class ApiClient {
 
   static Future<http.Response> delete(String endpoint) async {
     final headers = await _getHeaders();
-    return _executeRequest(() => http.delete(Uri.parse('\$baseUrl\$endpoint'), headers: headers));
+    return _executeRequest(() => http.delete(Uri.parse('$_effectiveBaseUrl$endpoint'), headers: headers));
   }
 }

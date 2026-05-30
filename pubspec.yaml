@@ -27,6 +27,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
   flutter_lints: ^6.0.0
 
@@ -41,6 +42,14 @@ flutter:
   assets:
     - assets/data/
 
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: false
+  image_path: "assets/img/logo.png"
+  # Opcional (se você quiser fundo adaptativo no Android):
+  # adaptive_icon_background: "#0F172A"
+  # adaptive_icon_foreground: "assets/img/logo.png"
+  
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
