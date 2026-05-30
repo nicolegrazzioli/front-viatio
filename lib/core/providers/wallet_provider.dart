@@ -26,12 +26,6 @@ class WalletProvider extends ChangeNotifier {
     
     if (fetchApi) {
       await WalletRepository().getWalletsByUser(userId, fetchApi: true);
-      
-      final db = await AppDatabase().database;
-      final currenciesResult = await db.rawQuery('SELECT DISTINCT currency FROM wallets WHERE user_id = ?', [userId]);
-      for (var c in currenciesResult) {
-        await recalculateWallet(userId, c['currency'] as String);
-      }
     }
     
     final walletsData = await WalletRepository().getWalletsByUser(userId, fetchApi: false);

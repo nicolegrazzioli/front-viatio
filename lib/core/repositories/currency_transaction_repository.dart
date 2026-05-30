@@ -98,7 +98,11 @@ class CurrencyTransactionRepository {
               photoPath: e['photoPath'],
             );
             
-            await _dao.insertTransaction(tx, isSynced: 1);
+            if (localData != null) {
+              await _dao.updateTransaction(tx, isSynced: 1);
+            } else {
+              await _dao.insertTransaction(tx, isSynced: 1);
+            }
           }
 
           final localSynced = await _dao.getSyncedTransactions(userId);

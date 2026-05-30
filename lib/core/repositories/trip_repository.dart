@@ -90,7 +90,11 @@ class TripRepository {
               coverType: e['coverType'] ?? 'cidade',
             );
             
-            await _dao.insertTrip(trip, isSynced: 1);
+            if (localData != null) {
+              await _dao.updateTrip(trip, isSynced: 1);
+            } else {
+              await _dao.insertTrip(trip, isSynced: 1);
+            }
           }
 
           final localSynced = await _dao.getSyncedTrips(userId);

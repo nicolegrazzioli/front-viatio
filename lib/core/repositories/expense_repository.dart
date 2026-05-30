@@ -105,7 +105,11 @@ class ExpenseRepository {
               photoPath: e['photoPath'],
             );
             
-            await _dao.insertExpense(exp, isSynced: 1);
+            if (localData != null) {
+              await _dao.updateExpense(exp, isSynced: 1);
+            } else {
+              await _dao.insertExpense(exp, isSynced: 1);
+            }
           }
 
           final localSynced = await _dao.getSyncedExpenses(tripId);
