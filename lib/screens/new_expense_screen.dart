@@ -117,15 +117,19 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
         final authProvider = context.read<AuthProvider>();
         final userId = authProvider.currentUser?.id;
         if (userId != null) {
-          final tripVet = await ExpenseRepository().getTripVet(userId, widget.trip.id!, _selectedCurrency);
+          final historicalVet = await ExpenseRepository().getHistoricalVet(
+            userId, 
+            _selectedCurrency, 
+            _selectedDate ?? DateTime.now()
+          );
           if (mounted) {
             setState(() {
-              _hasCurrencyVet = tripVet > 0.0;
+              _hasCurrencyVet = historicalVet > 0.0;
               if (!_hasCurrencyVet) {
                 _useAverageCost = false;
                 _exchangeRateController.text = '';
               } else if (_useAverageCost) {
-                _exchangeRateController.text = NumericHelpers.formatCurrency(tripVet);
+                _exchangeRateController.text = NumericHelpers.formatCurrency(historicalVet);
               }
             });
           }
@@ -158,6 +162,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
       setState(() {
         _selectedDate = picked;
       });
+      _updateExchangeRate();
     }
   }
 

@@ -3,7 +3,6 @@ import '../models/wallet.dart';
 import '../models/currency_transaction.dart';
 import '../repositories/wallet_repository.dart';
 import '../repositories/currency_transaction_repository.dart';
-import '../repositories/expense_repository.dart';
 import '../database/me_app_database.dart';
 import '../constants/app_currencies.dart';
 
@@ -90,7 +89,6 @@ class WalletProvider extends ChangeNotifier {
     }
     
     final currentWallet = await walletRepo.getWallet(userId, currency);
-    double? oldVet = currentWallet?.averageVet;
 
     final newWallet = Wallet(
       userId: userId,
@@ -105,12 +103,8 @@ class WalletProvider extends ChangeNotifier {
       await walletRepo.updateWallet(newWallet);
     }
 
-    // 3. Atualização Dinâmica do VET nos Gastos
-    if (oldVet != null && oldVet != newVet) {
-      await ExpenseRepository().updateDynamicVetForTrips(userId, currency);
-      // Dispara a sincronização em background para o backend receber a cascata
-      await ExpenseRepository().syncUnsyncedExpenses();
-    }
+    // 3. Atualização Dinâmica do VET removida (Caminho B: VET Histórico Congelado)
+    // Os gastos agora fixam o VET da data em que ocorreram e não mudam retroativamente.
   }
 
   Future<void> addTransaction(CurrencyTransaction transaction) async {

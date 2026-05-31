@@ -148,12 +148,8 @@ class ExpenseRepository {
     }
   }
 
-  Future<double> getTripVet(String userId, String tripId, String currency) {
-    return _dao.getTripVet(userId, tripId, currency);
-  }
-
-  Future<void> updateDynamicVetForTrips(String userId, String currency) {
-    return _dao.updateDynamicVetForTrips(userId, currency);
+  Future<double> getHistoricalVet(String userId, String currency, DateTime targetDate) {
+    return _dao.getHistoricalVet(userId, currency, targetDate);
   }
 }
 

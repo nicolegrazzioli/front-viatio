@@ -84,22 +84,10 @@ class ExpenseDAO {
     return await db.delete('expenses', where: 'id = ?', whereArgs: [id]);
   }
 
-  // Métodos de cálculo de VET que são puramente operações SQLite
-  Future<double> getTripVet(String userId, String tripId, String currency) async {
+  // Cálculos de VET Histórico (Caminho B)
+  Future<double> getHistoricalVet(String userId, String currency, DateTime targetDate) async {
     final db = await AppDatabase().database;
-    final tripRes = await db.query('trips', where: 'id = ?', whereArgs: [tripId]);
-    if (tripRes.isEmpty) return 1.0;
-    
-    final endDateStr = tripRes.first['end_date'] as String?;
-    DateTime? cutoffDate;
-    if (endDateStr != null && endDateStr.isNotEmpty) {
-      try {
-        final parsed = DateTime.parse(endDateStr);
-        cutoffDate = DateTime(parsed.year, parsed.month, parsed.day, 23, 59, 59);
-      } catch (e) {
-        // Ignorar
-      }
-    }
+    final cutoffDate = DateTime(targetDate.year, targetDate.month, targetDate.day, 23, 59, 59);
     
     final txs = await db.query('currency_transactions', where: 'user_id = ? AND currency = ? AND is_deleted = 0', whereArgs: [userId, currency]);
     double totalBought = 0.0;
@@ -114,7 +102,7 @@ class ExpenseDAO {
         // Ignorar
       }
       
-      if (cutoffDate == null || txDate.isBefore(cutoffDate) || txDate.isAtSameMomentAs(cutoffDate)) {
+      if (txDate.isBefore(cutoffDate) || txDate.isAtSameMomentAs(cutoffDate)) {
         totalBought += (tx['amount'] as num?)?.toDouble() ?? 0.0;
         totalBrl += (tx['amount_brl'] as num?)?.toDouble() ?? 0.0;
       }
@@ -125,65 +113,5 @@ class ExpenseDAO {
     }
     
     return 0.0;
-  }
-
-  Future<void> updateDynamicVetForTrips(String userId, String currency) async {
-    final db = await AppDatabase().database;
-    final trips = await db.query('trips', where: 'user_id = ? AND is_deleted = 0', whereArgs: [userId]);
-    final txs = await db.query('currency_transactions', where: 'user_id = ? AND currency = ? AND is_deleted = 0', whereArgs: [userId, currency]);
-    
-    final parsedTxs = txs.map((tx) {
-      DateTime date = DateTime.now();
-      try {
-        final parsed = DateTime.parse(tx['date'] as String);
-        date = DateTime(parsed.year, parsed.month, parsed.day);
-      } catch (e) {
-        // Ignorar
-      }
-      return {
-        'date': date,
-        'amount': (tx['amount'] as num?)?.toDouble() ?? 0.0,
-        'amount_brl': (tx['amount_brl'] as num?)?.toDouble() ?? 0.0,
-      };
-    }).toList();
-
-    for (var trip in trips) {
-      final tripId = trip['id'] as String;
-      final endDateStr = trip['end_date'] as String?;
-      
-      DateTime? cutoffDate;
-      if (endDateStr != null && endDateStr.isNotEmpty) {
-        try {
-          final parsed = DateTime.parse(endDateStr);
-          cutoffDate = DateTime(parsed.year, parsed.month, parsed.day, 23, 59, 59);
-        } catch (e) {
-          // Ignorar
-        }
-      }
-      
-      double totalBought = 0.0;
-      double totalBrl = 0.0;
-      for (var tx in parsedTxs) {
-        if (cutoffDate == null || (tx['date'] as DateTime).isBefore(cutoffDate) || (tx['date'] as DateTime).isAtSameMomentAs(cutoffDate)) {
-          totalBought += tx['amount'] as double;
-          totalBrl += tx['amount_brl'] as double;
-        }
-      }
-      
-      double tripVet = 0.0;
-      if (totalBought > 0) {
-        tripVet = totalBrl / totalBought;
-      } else {
-        tripVet = 0.0;
-      }
-      
-      if (tripVet > 0) {
-        await db.rawUpdate('''
-          UPDATE expenses 
-          SET exchange_rate = ?, amount_brl = amount * ?, is_synced = 0
-          WHERE trip_id = ? AND currency = ? AND is_average_cost = 1 AND is_deleted = 0 AND (exchange_rate != ? OR amount_brl != (amount * ?))
-        ''', [tripVet, tripVet, tripId, currency, tripVet, tripVet]);
-      }
-    }
   }
 }
