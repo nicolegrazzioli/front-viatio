@@ -482,6 +482,8 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                     const SnackBar(
                       content: Text('Viagem excluída com sucesso!'),
                       backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      margin: EdgeInsets.only(bottom: 80, left: 16, right: 16),
                     ),
                   );
                   Navigator.pop(ctx); // Fechar dialog

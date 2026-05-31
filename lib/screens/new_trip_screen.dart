@@ -199,6 +199,8 @@ class _NewTripScreenState extends State<NewTripScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text('Por favor, preencha o título da viagem.'),
                       backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      margin: EdgeInsets.only(bottom: 80, left: 16, right: 16),
                     ));
                     return;
                   }
@@ -207,6 +209,8 @@ class _NewTripScreenState extends State<NewTripScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text('A data final não pode ser anterior à data de início.'),
                       backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      margin: EdgeInsets.only(bottom: 80, left: 16, right: 16),
                     ));
                     return;
                   }
@@ -226,14 +230,29 @@ class _NewTripScreenState extends State<NewTripScreen> {
                       await context.read<WalletProvider>().recalculateWallet(trip.userId, AppCurrencies.eur);
                       await context.read<WalletProvider>().recalculateWallet(trip.userId, AppCurrencies.usd);
                       await context.read<WalletProvider>().loadWalletData(trip.userId, fetchApi: false);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Viagem atualizada com sucesso!'), backgroundColor: AppColors.moneyGreen));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Viagem atualizada com sucesso!'), 
+                        backgroundColor: AppColors.moneyGreen,
+                        behavior: SnackBarBehavior.floating,
+                        margin: EdgeInsets.only(bottom: 80, left: 16, right: 16),
+                      ));
                     } else {
                       await context.read<TripProvider>().addTrip(trip);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Viagem criada com sucesso!'), backgroundColor: AppColors.moneyGreen));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Viagem criada com sucesso!'), 
+                        backgroundColor: AppColors.moneyGreen,
+                        behavior: SnackBarBehavior.floating,
+                        margin: EdgeInsets.only(bottom: 80, left: 16, right: 16),
+                      ));
                     }
                   } catch (e) {
                     debugPrint("Erro ao salvar viagem: $e");
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: Colors.red));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Erro ao salvar: $e'), 
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      margin: const EdgeInsets.only(bottom: 80, left: 16, right: 16),
+                    ));
                   }
                   
                   if (mounted) Navigator.pop(context);

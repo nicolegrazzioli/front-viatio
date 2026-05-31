@@ -164,8 +164,12 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
   bool _isDateOutsideTrip() {
     if (_selectedDate == null) return false;
 
-    final start = widget.trip.startDate;
-    final end = widget.trip.endDate;
+    final start = DateTime(widget.trip.startDate.year, widget.trip.startDate.month, widget.trip.startDate.day);
+    
+    DateTime? end;
+    if (widget.trip.endDate != null) {
+      end = DateTime(widget.trip.endDate!.year, widget.trip.endDate!.month, widget.trip.endDate!.day);
+    }
 
     final current = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
 

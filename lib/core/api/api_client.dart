@@ -33,6 +33,7 @@ class ApiClient {
           ),
           backgroundColor: Colors.orange.shade800,
           behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 80, left: 16, right: 16),
           duration: const Duration(seconds: 3),
         ),
       );
