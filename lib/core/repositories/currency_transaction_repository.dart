@@ -4,13 +4,16 @@ import '../models/currency_transaction.dart';
 import '../api/api_client.dart';
 import '../dao/currency_transaction_dao.dart';
 
+/// repositório que faz a mediação entre as chamadas da API de transações e a persistência no banco local SQLite
 class CurrencyTransactionRepository {
   final CurrencyTransactionDAO _dao = CurrencyTransactionDAO();
 
+  // formata um objeto DateTime para string no formato YYYY-MM-DD aceito pelo banco de dados do servidor
   String _toApiDate(DateTime date) {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
+  // faz o parse de uma string de data da API convertendo de volta para DateTime
   DateTime _fromApiDate(String date) {
     try {
       return DateTime.parse(date);
@@ -19,6 +22,7 @@ class CurrencyTransactionRepository {
     }
   }
 
+  /// insere uma nova compra de moeda localmente e inicia a tentativa assíncrona de sincronização com a API
   Future<String> insertTransaction(CurrencyTransaction transaction) async {
     final txId = await _dao.insertTransaction(transaction, isSynced: 0);
     final newTx = CurrencyTransaction(
@@ -36,6 +40,7 @@ class CurrencyTransactionRepository {
     return txId;
   }
 
+  // envia uma nova transação de compra para a API e atualiza o status de sincronização local ao obter sucesso
   Future<void> _syncInsertTransaction(CurrencyTransaction transaction) async {
     try {
       await ApiClient.post('/currency-transactions', {
@@ -56,6 +61,7 @@ class CurrencyTransactionRepository {
     }
   }
 
+  /// localiza e sincroniza com a API todas as transações que foram criadas, modificadas ou deletadas offline
   Future<void> syncUnsyncedTransactions() async {
     final unsynced = await _dao.getUnsyncedTransactions();
     for (var map in unsynced) {
@@ -69,6 +75,7 @@ class CurrencyTransactionRepository {
     }
   }
 
+  /// busca transações na API para atualizar o banco de dados local com tratamento offline e resolve deleções remotas
   Future<List<CurrencyTransaction>> getTransactionsByUser(String userId, {bool fetchApi = true}) async {
     if (fetchApi) {
       try {
@@ -119,18 +126,21 @@ class CurrencyTransactionRepository {
     return await _dao.getTransactionsByUser(userId);
   }
 
+  /// atualiza as informações da transação localmente e sincroniza o novo estado com o servidor
   Future<int> updateTransaction(CurrencyTransaction transaction) async {
     await _dao.updateTransaction(transaction, isSynced: 0);
     _syncInsertTransaction(transaction);
     return 1;
   }
 
+  /// deleta logicamente a transação localmente e envia o pedido de exclusão física ao servidor
   Future<int> deleteTransaction(String id) async {
     await _dao.markAsDeleted(id);
     _syncDeleteTransaction(id);
     return 1;
   }
 
+  // executa a exclusão de uma transação na API e limpa o registro de forma permanente no SQLite ao obter sucesso
   Future<void> _syncDeleteTransaction(String id) async {
     try {
       await ApiClient.delete('/currency-transactions/$id');

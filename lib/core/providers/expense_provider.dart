@@ -4,12 +4,14 @@ import '../repositories/expense_repository.dart';
 import 'trip_provider.dart';
 import 'wallet_provider.dart';
 
+/// gerencia as operações de gastos na tela e coordena o recálculo automático de saldos e carteiras
 class ExpenseProvider extends ChangeNotifier {
   final ExpenseRepository _expenseRepo = ExpenseRepository();
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
 
+  /// insere ou atualiza um gasto localmente e atualiza os saldos das carteiras envolvidas na operação
   Future<void> saveAndRecalculate({
     required Expense expense,
     required bool isEdit,
@@ -41,6 +43,7 @@ class ExpenseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// remove logicamente um gasto do dispositivo e recarrega os saldos atualizados da carteira
   Future<void> deleteAndRecalculate({
     required Expense expense,
     required String userId,

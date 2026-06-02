@@ -6,10 +6,15 @@ import '../repositories/currency_transaction_repository.dart';
 import '../database/me_app_database.dart';
 import '../constants/app_currencies.dart';
 
+/// gerencia o estado financeiro da carteira de viagens do usuário em reais e moedas estrangeiras
 class WalletProvider extends ChangeNotifier {
+  // lista das carteiras virtuais
   List<Wallet>? _wallets;
+  // histórico de compras de moeda
   List<CurrencyTransaction>? _transactions;
+  // valor total estimado da carteira convertido em BRL
   double _totalBalanceBrl = 0.0;
+  // sinalizador de carregamento
   bool _isLoading = false;
 
   List<Wallet>? get wallets => _wallets;
@@ -17,6 +22,7 @@ class WalletProvider extends ChangeNotifier {
   double get totalBalanceBrl => _totalBalanceBrl;
   bool get isLoading => _isLoading;
 
+  /// busca as transações e as carteiras, garante que USD e EUR sempre existam na lista e calcula o valor total geral em BRL
   Future<void> loadWalletData(String userId, {bool fetchApi = true}) async {
     _isLoading = true;
     notifyListeners();
@@ -52,13 +58,14 @@ class WalletProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// recalcula o saldo restante e o custo médio (VET) de uma moeda subtraindo os gastos das compras efetuadas
   Future<void> recalculateWallet(String userId, String currency) async {
     if (currency == AppCurrencies.brl) return;
     
     final db = await AppDatabase().database;
     final walletRepo = WalletRepository();
     
-    // 1. Soma das compras (CurrencyTransactions)
+    // 1. soma das compras (CurrencyTransactions)
     final txs = await db.query('currency_transactions', 
         where: 'user_id = ? AND currency = ? AND is_deleted = 0', 
         whereArgs: [userId, currency]);
@@ -71,7 +78,7 @@ class WalletProvider extends ChangeNotifier {
       totalBrl += (tx['amount_brl'] as num?)?.toDouble() ?? 0.0;
     }
 
-    // 2. Soma dos gastos (Todas as despesas na moeda)
+    // 2. soma dos gastos (todas as despesas na moeda)
     final expenseResult = await db.rawQuery('''
       SELECT SUM(e.amount) as spent 
       FROM expenses e
@@ -103,16 +110,18 @@ class WalletProvider extends ChangeNotifier {
       await walletRepo.updateWallet(newWallet);
     }
 
-    // 3. Atualização Dinâmica do VET removida (Caminho B: VET Histórico Congelado)
-    // Os gastos agora fixam o VET da data em que ocorreram e não mudam retroativamente.
+    // 3. atualização dinâmica do VET removida (Caminho B: VET Histórico Congelado)
+    // os gastos agora fixam o VET da data em que ocorreram e não mudam retroativamente
   }
 
+  /// insere uma nova compra de moeda, recalcula o saldo da carteira e atualiza o estado local
   Future<void> addTransaction(CurrencyTransaction transaction) async {
     await CurrencyTransactionRepository().insertTransaction(transaction);
     await recalculateWallet(transaction.userId, transaction.currency);
     await loadWalletData(transaction.userId, fetchApi: false);
   }
 
+  /// edita uma transação de compra existente e recalcula as carteiras afetadas pela mudança
   Future<void> editTransaction(CurrencyTransaction newTx, CurrencyTransaction oldTx) async {
     await CurrencyTransactionRepository().updateTransaction(newTx);
     await recalculateWallet(newTx.userId, newTx.currency);
@@ -122,6 +131,7 @@ class WalletProvider extends ChangeNotifier {
     await loadWalletData(newTx.userId, fetchApi: false);
   }
 
+  /// remove logicamente uma compra de moeda e atualiza os saldos afetados
   Future<void> removeTransaction(CurrencyTransaction transaction) async {
     await CurrencyTransactionRepository().deleteTransaction(transaction.id!);
     await recalculateWallet(transaction.userId, transaction.currency);

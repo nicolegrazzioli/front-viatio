@@ -13,6 +13,7 @@ import '../core/constants/app_categories.dart';
 import '../core/constants/app_currencies.dart';
 import '../core/utils/numeric_helpers.dart';
 
+/// tela para cadastro ou edição de despesa associada a uma viagem calculando o valor em BRL
 class NewExpenseScreen extends StatefulWidget {
   final Trip trip;
   final Expense? expense;
@@ -24,7 +25,6 @@ class NewExpenseScreen extends StatefulWidget {
   });
 
   @override
-
   State<NewExpenseScreen> createState() => _NewExpenseScreenState();
 }
 
@@ -77,6 +77,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
     super.dispose();
   }
 
+  // valida se a despesa excede o saldo atual da carteira da moeda correspondente alertando o usuário
   void _checkNegativeBalance() {
     if (_wallets == null) return;
     

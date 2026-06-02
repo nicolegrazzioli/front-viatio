@@ -1,17 +1,18 @@
+/// conjunto de funções auxiliares para manipulação, parse e formatação de valores numéricos e moedas
 class NumericHelpers {
-  /// Converte uma string monetária (com vírgula ou ponto) para double
+  /// converte uma string contendo valores decimais (com ponto ou vírgula) em double
   static double parseAmount(String text) {
     if (text.trim().isEmpty) return 0.0;
     final normalized = text.replaceAll(',', '.');
     return double.tryParse(normalized) ?? 0.0;
   }
 
-  /// Formata um valor double para string com 2 casas decimais (padrão com ponto)
+  /// formata valores numéricos para string contendo duas casas decimais com separação por ponto
   static String formatCurrency(double amount) {
     return amount.toStringAsFixed(2);
   }
 
-  /// Formata um valor double para string monetária no padrão brasileiro (com vírgula)
+  /// formata valores numéricos para representação monetária brasileira utilizando a vírgula como decimal
   static String formatBrl(double amount) {
     return amount.toStringAsFixed(2).replaceAll('.', ',');
   }

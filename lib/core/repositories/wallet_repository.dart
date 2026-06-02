@@ -6,13 +6,16 @@ import '../dao/wallet_dao.dart';
 import '../database/me_app_database.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// repositório que faz a mediação entre as chamadas da API de carteiras e o armazenamento SQLite local
 class WalletRepository {
   final WalletDAO _dao = WalletDAO();
 
+  /// insere uma nova carteira de saldo no banco de dados local
   Future<int> insertWallet(Wallet wallet) async {
     return await _dao.insertWallet(wallet);
   }
 
+  /// busca carteiras na API para atualizar o banco de dados local com tratamento offline e resolve remoções remotas
   Future<List<Wallet>> getWalletsByUser(String userId, {bool fetchApi = true}) async {
     if (fetchApi) {
       try {
@@ -54,14 +57,17 @@ class WalletRepository {
     return await _dao.getWalletsByUser(userId, fetchApi: false);
   }
 
+  /// busca uma carteira específica de um usuário filtrada pela moeda correspondente
   Future<Wallet?> getWallet(String userId, String currency) async {
     return await _dao.getWallet(userId, currency);
   }
 
+  /// atualiza as informações de saldo e VET de uma carteira específica no banco local
   Future<int> updateWallet(Wallet wallet) async {
     return await _dao.updateWallet(wallet);
   }
 
+  /// remove a carteira do banco local
   Future<int> deleteWallet(String userId, String currency) async {
     return await _dao.deleteWallet(userId, currency);
   }

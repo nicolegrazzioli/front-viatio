@@ -1,5 +1,6 @@
 import '../utils/date_helpers.dart';
 
+/// modelo de dados que representa um gasto registrado em uma viagem
 class Expense {
   final String? id;
   final String tripId;
@@ -29,6 +30,7 @@ class Expense {
     this.photoPath,
   });
 
+  // converte o objeto de gasto para um mapa de chave e valor compatível com o SQLite
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -46,6 +48,7 @@ class Expense {
     };
   }
 
+  // constrói uma instância de Expense a partir de dados mapeados do banco
   factory Expense.fromMap(Map<String, dynamic> map) {
     return Expense(
       id: map['id']?.toString(),

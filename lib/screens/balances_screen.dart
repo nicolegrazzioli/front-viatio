@@ -13,6 +13,7 @@ import '../core/constants/app_currencies.dart';
 import '../core/utils/numeric_helpers.dart';
 import '../core/utils/date_helpers.dart';
 
+/// tela responsável por exibir os saldos das carteiras por moeda e listar as transações de compra efetuadas
 class BalancesScreen extends StatefulWidget {
   const BalancesScreen({super.key});
 
@@ -21,6 +22,7 @@ class BalancesScreen extends StatefulWidget {
 }
 
 class _BalancesScreenState extends State<BalancesScreen> {
+  // controladores de rolagem para o carrossel e o scroll geral da tela
   final ScrollController _scrollController = ScrollController();
   final ScrollController _mainScrollController = ScrollController();
 
@@ -29,8 +31,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
   String? _filterCurrency;
   String? _filterSource;
 
-
-
+  // filtra e ordena a lista de transações com base nas opções de busca, moeda, origem e critério de ordenação selecionados
   List<CurrencyTransaction> _getFilteredAndSortedTransactions(List<CurrencyTransaction>? transactions) {
     if (transactions == null) return [];
     var list = transactions.where((t) {

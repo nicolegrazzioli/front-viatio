@@ -5,13 +5,16 @@ import '../models/user.dart';
 import '../dao/userDAO.dart';
 import '../api/api_client.dart';
 
+/// repositório responsável por intermediar os fluxos de autenticação, login, logout e persistência do usuário logado
 class UserRepository {
   final UserDAO _dao = UserDAO();
 
+  /// busca o perfil do usuário atualmente autenticado e persistido no banco local
   Future<User?> getLoggedUser() async {
     return await _dao.getLoggedUser();
   }
 
+  /// faz o envio da solicitação de cadastro do usuário para a API
   Future<bool> register(User user) async {
     try {
       final response = await ApiClient.post('/auth/register', {
@@ -26,6 +29,7 @@ class UserRepository {
     }
   }
 
+  /// executa o login enviando credenciais para o servidor, salva o token JWT e armazena os dados do usuário localmente
   Future<User?> login(String email, String password) async {
     try {
       final response = await ApiClient.post('/auth/login', {
@@ -59,6 +63,7 @@ class UserRepository {
     return null;
   }
 
+  /// realiza a limpeza local dos dados do usuário e remove o token JWT das preferências
   Future<void> logout() async {
     await _dao.clearUsers();
     final prefs = await SharedPreferences.getInstance();

@@ -14,6 +14,7 @@ import '../core/theme/app_colors.dart';
       }
 * */
 
+/// tela de autenticação para login do usuário no sistema
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -34,6 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // valida o formulário de login e submete as credenciais do usuário para autenticação
   void _login() async {
     if (_formKey.currentState!.validate()) {
       final success = await context.read<AuthProvider>().login(

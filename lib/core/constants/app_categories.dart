@@ -1,3 +1,4 @@
+/// categorias padrão de gastos de viagem suportadas pelo aplicativo
 class AppCategories {
   static const String food = 'Alimentação';
   static const String market = 'Mercado';
@@ -8,6 +9,7 @@ class AppCategories {
   static const String bureaucracy = 'Burocracia (visto, taxa, seguro)';
   static const String health = 'Saúde (farmácia, consulta)';
 
+  // lista agrupada com todas as categorias de gastos disponíveis
   static const List<String> all = [
     food, market, transport, lodging,
     leisure, shopping, bureaucracy, health

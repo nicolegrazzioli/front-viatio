@@ -9,6 +9,7 @@ import '../core/providers/trip_provider.dart';
 import '../core/constants/app_currencies.dart';
 import '../core/utils/numeric_helpers.dart';
 
+/// tela para cadastro ou edição de compra de moedas estrangeiras atualizando o saldo e carteiras associadas
 class NewCurrencyPurchaseScreen extends StatefulWidget {
   final String userId;
   final CurrencyTransaction? transaction;
@@ -48,7 +49,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
       
       String origin = data.source;
       if (!_origins.contains(origin)) {
-        // Se a origem do gasto antigo não estiver na lista fixa, adiciona ela só pra podermos editar sem perder o dado
+        // se a origem do gasto antigo não estiver na lista fixa, adiciona ela só pra podermos editar sem perder o dado
         _origins.add(origin);
       }
       _selectedOrigin = origin;
@@ -66,10 +67,12 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
     super.dispose();
   }
 
+  // reconstrói a tela para recalcular e atualizar o VET dinamicamente
   void _updateVET() {
-    setState(() {}); // Trigger rebuild to update the VET text
+    setState(() {}); 
   }
 
+  // calcula o valor de VET dividindo o total em reais pela quantia de moeda estrangeira comprada
   String get _calculatedVET {
     final amount = NumericHelpers.parseAmount(_amountController.text);
     final totalBRL = NumericHelpers.parseAmount(_totalBRLController.text);

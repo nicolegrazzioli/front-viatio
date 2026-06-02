@@ -1,5 +1,6 @@
 import '../utils/date_helpers.dart';
 
+/// modelo de dados que representa um roteiro ou viagem do usuário
 class Trip {
   final String? id;
   final String userId;
@@ -17,6 +18,7 @@ class Trip {
     required this.coverType,
   });
 
+  // converte a viagem para um mapa estruturado chave-valor para salvar no SQLite
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -28,6 +30,7 @@ class Trip {
     };
   }
 
+  // inicializa um objeto Trip com dados buscados do banco de dados local
   factory Trip.fromMap(Map<String, dynamic> map) {
     return Trip(
       id: map['id']?.toString(),

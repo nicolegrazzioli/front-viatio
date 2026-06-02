@@ -4,20 +4,25 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// singleton responsável por criar, inicializar, atualizar e popular o banco de dados SQLite local do aplicativo
 class AppDatabase {
+  // instância única privada do singleton
   static final AppDatabase _instance = AppDatabase._internal();
+  // referência em cache do banco de dados sqflite após inicializado
   static Database? _database;
 
   factory AppDatabase() => _instance;
 
   AppDatabase._internal();
 
+  /// getter assíncrono que inicializa ou retorna a instância ativa do banco de dados
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
 
+  /// cria o arquivo de banco local e configura as tabelas de viagens, gastos, compras e carteiras
   Future<Database> _initDatabase() async {
     final String path;
     if (kIsWeb) {
@@ -30,9 +35,11 @@ class AppDatabase {
       path,
       version: 3,
       onConfigure: (db) async {
+        // ativa o suporte a chaves estrangeiras com cascata no SQLite
         await db.execute('PRAGMA foreign_keys = ON');
       },
       onCreate: (db, version) async {
+        // cria a estrutura inicial das tabelas users, trips, expenses, currency_transactions e wallets
         await db.execute('''
             CREATE TABLE users(
               id TEXT PRIMARY KEY,
@@ -111,6 +118,7 @@ class AppDatabase {
             ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
+        // executa migrações estruturais do banco de dados ao alterar a versão do esquema local
         if (oldVersion < 2) {
           await db.execute("ALTER TABLE users ADD COLUMN is_synced INTEGER DEFAULT 0");
           await db.execute("ALTER TABLE trips ADD COLUMN is_synced INTEGER DEFAULT 0");
@@ -132,6 +140,7 @@ class AppDatabase {
     );
   }
 
+  /// popula as tabelas locais com dados fictícios a partir de um arquivo JSON estático de mockup caso o banco esteja vazio
   Future<void> _seedDatabase(Database db) async {
     final count = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM users'));
     if (count == 0) {

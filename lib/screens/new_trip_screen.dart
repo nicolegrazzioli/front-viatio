@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../core/providers/wallet_provider.dart';
 import '../core/constants/app_currencies.dart';
 
+/// tela para cadastro ou edição de uma viagem/roteiro de viagem salvando título, datas e imagem de capa
 class NewTripScreen extends StatefulWidget {
   final Trip? trip;
   final String? userId;
@@ -43,6 +44,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
     {"name": "Cultural", "url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23"},
   ];
 
+  // abre o seletor de calendário para as datas de início e fim da viagem gerenciando validações de datas
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -263,7 +265,6 @@ class _NewTripScreenState extends State<NewTripScreen> {
                 ),
               ),
             ),
-            // Botões de Excluir removidos daqui pois estão no menu ⋮ da tela de detalhes
             const SizedBox(height: 40),
           ],
         ),

@@ -4,13 +4,16 @@ import '../models/trip.dart';
 import '../api/api_client.dart';
 import '../dao/trip_dao.dart';
 
+/// repositório que faz a mediação entre as chamadas da API de viagens e a persistência no banco local SQLite
 class TripRepository {
   final TripDAO _dao = TripDAO();
 
+  // formata um DateTime para string no formato YYYY-MM-DD
   String _toApiDate(DateTime date) {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
+  // converte uma string de data da API em DateTime
   DateTime _fromApiDate(String date) {
     try {
       return DateTime.parse(date);
@@ -19,6 +22,7 @@ class TripRepository {
     }
   }
 
+  /// insere uma nova viagem localmente e envia o pedido de criação para o servidor
   Future<String> insertTrip(Trip trip) async {
     final tripId = await _dao.insertTrip(trip, isSynced: 0);
     // Cria uma cópia com o ID gerado para envio
@@ -34,6 +38,7 @@ class TripRepository {
     return tripId;
   }
 
+  // envia as informações de uma viagem para a API e atualiza a flag is_synced local
   Future<void> _syncInsertTrip(Trip trip) async {
     try {
       await ApiClient.post('/trips', {
@@ -51,6 +56,7 @@ class TripRepository {
     }
   }
 
+  /// localiza e sincroniza todas as viagens modificadas ou deletadas offline com a API
   Future<void> syncUnsyncedTrips() async {
     final unsynced = await _dao.getUnsyncedTrips();
     for (var map in unsynced) {
@@ -64,6 +70,7 @@ class TripRepository {
     }
   }
 
+  /// busca viagens na API para atualizar o banco local com tratamento offline e remove inconsistências deletadas
   Future<List<Trip>> getTripsByUser(String userId, {bool fetchApi = true}) async {
     if (fetchApi) {
       try {
@@ -112,18 +119,21 @@ class TripRepository {
     return await _dao.getTripsByUser(userId);
   }
 
+  /// edita os dados de uma viagem localmente e envia a atualização para o servidor
   Future<int> updateTrip(Trip trip) async {
     int rows = await _dao.updateTrip(trip, isSynced: 0);
     _syncInsertTrip(trip);
     return rows;
   }
 
+  /// deleta logicamente uma viagem localmente e solicita a exclusão na API
   Future<int> deleteTrip(String id) async {
     await _dao.markAsDeleted(id);
     _syncDeleteTrip(id);
     return 1;
   }
 
+  // faz a chamada de remoção de viagem na API e limpa o registro de forma permanente no SQLite
   Future<void> _syncDeleteTrip(String id) async {
     try {
       await ApiClient.delete('/trips/$id');

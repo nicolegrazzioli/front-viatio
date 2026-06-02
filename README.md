@@ -11,7 +11,7 @@
 
 ## 1. Sobre o Projeto
 
-O **Viatio** é um assistente financeiro mobile focado em viajantes, intercambistas e nômades digitais. Seu principal diferencial é a gestão inteligente do Custo Médio (VET - Valor Efetivo Total).
+O **Viatio** é um assistente financeiro mobile on/off-line para intercambistas e nômades digitais. Seu principal diferencial é a gestão inteligente do Custo Médio (VET - Valor Efetivo Total).
 A ideia central é simples: você registra seus aportes de moeda estrangeira (ex: comprou EUR com BRL) e o app calcula seu custo médio. Quando você cadastra uma despesa na viagem, o app converte automaticamente o valor para Reais usando o _seu_ VET consolidado, e não a cotação comercial do dia, mostrando o impacto real no bolso.
 
 ## 2. Arquitetura e Fluxo (Offline-First, Flutter + Spring Boot)
@@ -60,7 +60,15 @@ lib/
 - lib/core/constants e /utils --> constantes globais (ex: URLs de API) e funções gerais (ex: formatador de data)
 
 
-### 2.2. Offline first e sincronização
+### 2.2. Fluxo de arquivos
+1. **Interface (`screens/` e `widgets/`)**: A tela captura a ação do usuário (ex: toque em salvar despesa)
+2. **Estado (`providers/`)**: O widget chama um método do `Provider` correspondente para atualizar a interface 
+3. **Regra de Dados (`repositories/`)**: O `Provider` delega a persistência para o `Repository`, que gerencia a integridade local e remota
+4. **Armazenamento (`dao/` e `database/`)**: O `Repository` aciona o `DAO` para gravar a alteração no SQLite local 
+5. **Comunicação e Sincronização (`api/` e `sync/`)**: O `Repository` envia o dado ao backend através do `ApiClient` e, caso offline, a sincronização é reagendada na `SyncEngine`
+
+
+### 2.3. Offline first e sincronização
 **offline-first**
 - quando clica em salvar, o app grava o novo dado no banco de dados local do celular (sqlite) e atualiza a tela lendo esse banco
 - ao mesmo tempo, o app tenta enviar essa atualização para o servidor (postgres)
@@ -81,7 +89,7 @@ lib/
 - mudança de conexão ou ações do usuário (ex: cadastrar um gasto estando online)
 - puxar para atualizar (arrasta a tela para baixo para atualizar manualmente)
 
-### 2.3. Cálculo do VET do dia selecionado
+### 2.4. Cálculo do VET do dia selecionado
 - pega a data selecionada no calendário do gasto e busca no banco de dados (sqlite) compras daquela moeda apenas até essa data (<=)
 - calcula a média: reais gastos ate a data / total da moeda adquirido até a data
 - o VET calculado é gravado no registro do gasto do banco local e não muda
@@ -89,7 +97,7 @@ lib/
 
 ## 3. O que (ainda) não foi implementado
 
-Por se tratar de um **MVP** (Produto Mínimo Viável), o foco do desenvolvimento foi garantir a solidez das regras financeiras off/on-line. Algumas features de apoio não entraram:
+Por se tratar de um **MVP** (Produto Mínimo Viável), o foco do desenvolvimento foi garantir a solidez das regras financeiras off/on-line. 
 
 - **Upload de Imagens (Foto de Perfil e Comprovantes):** O banco de dados (nuvem e local) já prevê as colunas `profile_image` e `photo_path`. Porém, a UI e a lógica de envio no Flutter não foram feitas. Motivo: pedir permissões de galeria/câmera, gerenciar arquivos pesados no cache local offline, e sincronizar blobs para nuvem (AWS S3) adicionaria muito risco e esforço.
 - **Página Detalhada do Usuário:** A prioridade é a tela de viagens. A gestão de conta (trocar e-mail, senha) ficará para versões posteriores.

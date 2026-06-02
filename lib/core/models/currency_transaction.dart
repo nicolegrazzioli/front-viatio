@@ -1,5 +1,6 @@
 import '../utils/date_helpers.dart';
 
+/// modelo de dados que representa uma transação de compra de moeda estrangeira
 class CurrencyTransaction {
   final String? id;
   final String userId;
@@ -25,6 +26,7 @@ class CurrencyTransaction {
     this.photoPath,
   });
 
+  // converte o objeto de transação para um mapa de chave e valor compatível com o SQLite
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -40,6 +42,7 @@ class CurrencyTransaction {
     };
   }
 
+  // constrói uma instância de CurrencyTransaction a partir de dados recuperados do banco
   factory CurrencyTransaction.fromMap(Map<String, dynamic> map) {
     return CurrencyTransaction(
       id: map['id']?.toString(),

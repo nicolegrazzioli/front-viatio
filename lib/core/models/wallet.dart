@@ -1,3 +1,4 @@
+/// modelo de dados que representa o saldo de uma determinada moeda estrangeira na carteira do usuário
 class Wallet {
   final String userId;
   final String currency;
@@ -11,6 +12,7 @@ class Wallet {
     required this.averageVet,
   });
 
+  // mapeia os dados da carteira para o formato chave-valor estruturado para persistência no SQLite
   Map<String, dynamic> toMap() {
     return {
       'user_id': userId,
@@ -20,6 +22,7 @@ class Wallet {
     };
   }
 
+  // cria uma instância de Wallet de acordo com os registros retornados do banco local
   factory Wallet.fromMap(Map<String, dynamic> map) {
     return Wallet(
       userId: map['user_id']?.toString() ?? '',

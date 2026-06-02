@@ -19,6 +19,7 @@ import '../core/constants/app_currencies.dart';
 import '../core/utils/numeric_helpers.dart';
 import '../core/utils/date_helpers.dart';
 
+/// tela de detalhes da viagem que exibe o total gasto, gráfico de pizza por categoria e listagem de despesas
 class TripDetailsScreen extends StatefulWidget {
   final Trip trip;
 
@@ -38,8 +39,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
   String? _filterCategory;
   final ScrollController _scrollController = ScrollController();
 
-
-
+  // filtra a lista de gastos da viagem por categoria, termo de busca e ordena pelo critério selecionado
   List<Expense> get _filteredAndSortedExpenses {
     if (_expenses == null) return [];
     var list = _expenses!.where((e) {
@@ -339,7 +339,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             context,
             MaterialPageRoute(builder: (context) => NewExpenseScreen(trip: widget.trip)),
           );
-          _loadExpenses(fetchApi: false); // Atualiza a lista e totais
+          _loadExpenses(fetchApi: false); // atualiza a lista e totais
         },
       ),
       

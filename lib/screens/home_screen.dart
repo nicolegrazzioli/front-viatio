@@ -17,7 +17,7 @@ import '../core/utils/numeric_helpers.dart';
 import '../core/utils/date_helpers.dart';
 
 // --- MOCK API E MODELOS ---
-// Estes modelos representam as informações que virão do seu back-end em Java futuramente via JSON.
+// modelos de informações que virão do back-endvia JSON
 
 class Category {
   final String name;
@@ -70,6 +70,7 @@ final List<Category> categories = [
   ),
 ];
 
+/// tela principal do aplicativo que exibe a listagem de viagens cadastradas e o saldo total consolidado do usuário
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -77,6 +78,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+/// gerencia o estado das buscas, ordenação e carregamento assíncrono das viagens e saldos na inicialização da home
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
@@ -100,6 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // filtra a lista de viagens e ordena por data ou valor gasto de acordo com as preferências selecionadas
   List<Trip> _getFilteredAndSortedTrips(
     List<Trip>? trips,
     Map<String, double> amounts,
@@ -198,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
       tripProvider.tripAmounts,
     );
 
-    // Fixa a viagem "Dia a Dia" sempre no topo da lista
+    // Fixa a viagem "Dia a Dia" sempre no topo da lista - gastos de moeda fora de viagens especificas, para atualizar o saldo
     final diaADiaIndex = sortedTrips.indexWhere(
       (t) => t.title.toLowerCase() == 'dia a dia',
     );
@@ -290,10 +293,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 24),
 
-                          // Barra de Pesquisa e Filtros (Widget Compartilhado)
+                          // barra de pesquisa e filtros 
                           SearchFilterBar(
                             showFilter:
-                                false, // Ocultamos na Home conforme planejado
+                                false, // filtro oculto na Home
                             isSortActive: _sortOption != 'Recentes (Padrão)',
                             onSortTap: _showSortModal,
                             searchHint: "pesquisar viagem",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 
+/// barra de ferramentas combinada contendo campo de pesquisa de texto e botões para filtragem e ordenação de listas
 class SearchFilterBar extends StatelessWidget {
   final VoidCallback? onFilterTap;
   final VoidCallback? onSortTap;
@@ -25,11 +26,11 @@ class SearchFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Botões de Filtro e Ordenação (Metade da Tela)
+        // botões de filtro e ordenação (metade)
         Expanded(
           child: Row(
             children: [
-              // Botão Filtrar (opcional)
+              // botão filtrar (opcional, nao tem na home)
               if (showFilter) ...[
                 Expanded(
                   child: Container(
@@ -74,7 +75,7 @@ class SearchFilterBar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 16),
-        // Barra de Pesquisa (Outra Metade da Tela)
+        // barra de pesquisa (a outra metade)
         Expanded(
           child: Container(
             height: 40,

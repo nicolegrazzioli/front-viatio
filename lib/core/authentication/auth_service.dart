@@ -6,9 +6,12 @@ import '../api/api_client.dart';
 import '../api/sync_service.dart';
 import '../dao/userDAO.dart';
 
+/// autenticação do usuário, gerencia o login, registro, logout e estado da sessão
 class AuthService {
+  // guarda os dados do usuário autenticado na sessão do aplicativo
   static User? currentUser;
 
+  /// inicializa a sessão buscando o usuário logado no banco de dados local e inicia a sincronização offline se existir
   static Future<void> initSession() async {
     currentUser = await UserDAO().getLoggedUser();
     if (currentUser != null) {
@@ -16,6 +19,7 @@ class AuthService {
     }
   }
 
+  /// registra um novo usuário na API e retorna true se o cadastro for bem-sucedido
   Future<bool> register(User user) async {
     try {
       final response = await ApiClient.post('/auth/register', {
@@ -31,6 +35,7 @@ class AuthService {
     }
   }
 
+  /// realiza a autenticação do usuário, salva o token JWT localmente, armazena os dados do usuário no banco local e inicia a sincronização offline
   Future<User?> login(String email, String password) async {
     try {
       final response = await ApiClient.post('/auth/login', {
@@ -43,7 +48,7 @@ class AuthService {
         final token = data['token'];
         final userData = data['user'];
 
-        // Salva o token JWT localmente
+        // salva o token JWT localmente
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('jwt_token', token);
 
@@ -51,14 +56,14 @@ class AuthService {
           id: userData['id'],
           name: userData['name'],
           email: userData['email'],
-          password: "---", // não salvamos a senha no front
+          password: "---", // não salva a senha no front
         );
         
         await UserDAO().clearUsers();
         await UserDAO().insertUser(loggedUser);
         
         currentUser = loggedUser;
-        SyncService.syncAllUnsynced(); // Tenta sincronizar registros criados offline
+        SyncService.syncAllUnsynced(); // tenta sincronizar registros criados offline
         return loggedUser;
       }
     } catch (e) {
@@ -67,6 +72,7 @@ class AuthService {
     return null;
   }
 
+  /// encerra a sessão do usuário limpando os dados locais e removendo o token JWT do SharedPreferences
   Future<void> logout() async {
     currentUser = null;
     await UserDAO().clearUsers();

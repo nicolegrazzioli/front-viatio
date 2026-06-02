@@ -3,6 +3,7 @@ import 'package:app_final/core/authentication/auth_service.dart';
 import 'package:app_final/core/models/user.dart';
 import '../core/theme/app_colors.dart';
 
+/// tela de cadastro para criação de nova conta de usuário
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -25,6 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  // valida o formulário de cadastro de usuário e envia os dados para registro na API
   void _register() async {
     if (_formKey.currentState!.validate()) {
       final newUser = User(

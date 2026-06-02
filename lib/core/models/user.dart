@@ -1,3 +1,4 @@
+/// modelo de dados que representa o perfil de usuário do sistema
 class User {
   final String? id;
   final String name;
@@ -13,9 +14,8 @@ class User {
    this.profileImage,
 });
 
-  //chave, valor - chama user.toMap
-  //transforma em string e guarda no banco
-  Map<String, dynamic> toMap() { //dynamic = recebe string ou  int
+  // mapeia os dados do usuário para o formato de chave e valor armazenável no banco SQLite
+  Map<String, dynamic> toMap() { 
     return {
       'id': id,
       'name': name,
@@ -25,8 +25,8 @@ class User {
     };
   }
 
-  //receb do banco
-  factory /*metodo de criaçao de objetos*/ User.fromMap(Map<String, dynamic> map) {
+  // cria uma instância de User obtendo as chaves mapeadas do banco de dados local
+  factory User.fromMap(Map<String, dynamic> map) {
     return User(
       id: map['id']?.toString(),
       name: map['name'],
@@ -35,6 +35,4 @@ class User {
       profileImage: map['profile_image'],
     );
   }
-
-
 }

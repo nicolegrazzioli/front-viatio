@@ -11,29 +11,34 @@ import 'package:app_final/core/providers/expense_provider.dart';
 import 'app_widget.dart';
 
 void main() async {
+  // garante que as ligações do framework estejam prontas antes de inicializar o app
   WidgetsFlutterBinding.ensureInitialized();
 
   debugPrint("--- Iniciando Aplicativo ---");
 
+  // instancia o AuthProvider para recuperar a sessão do usuário
   final authProvider = AuthProvider();
 
   try {
     if (kIsWeb) {
+      // configura o suporte de banco de dados para a plataforma web
       debugPrint("Configurando databaseFactory para Web...");
       databaseFactory = databaseFactoryFfiWeb;
     }
     
+    // realiza a conexão e criação do banco de dados SQLite
     debugPrint("Tentando inicializar o banco de dados...");
     await AppDatabase().database;
     debugPrint("Banco de dados inicializado com sucesso!");
     
-    // Inicia a sessão buscando o usuário do SQLite através do Provider
+    // inicia a sessão buscando o usuário local no SQLite usando o AuthProvider
     await authProvider.initSession();
     
   } catch (e) {
     debugPrint("ERRO ao inicializar: $e");
   }
 
+  // inicializa o aplicativo injetando os estados no MultiProvider
   runApp(
     MultiProvider(
       providers: [

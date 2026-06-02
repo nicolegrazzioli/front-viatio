@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 
+/// barra de navegação inferior com recorte central para o botão "+" suspenso
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -39,7 +40,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 70), // Espaço no meio para o FAB flutuante
+            const SizedBox(width: 70), // Espaço no meio para o "+" flutuante
             Expanded(
               child: InkWell(
                 onTap: () => onTap(1),
