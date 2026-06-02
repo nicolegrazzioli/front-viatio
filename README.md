@@ -4,7 +4,7 @@
 
 1. [Sobre o Projeto](#1-sobre-o-projeto)
 2. [Arquitetura e Fluxo (Offline-First, Flutter + Spring Boot)](#2-arquitetura-e-fluxo-offline-first-flutter--spring-boot)
-3. [O que (ainda) não foi implementado e por quê](#3-o-que-ainda-não-foi-implementado-e-por-quê)
+3. [O que (ainda) não foi implementado ](#3-o-que-ainda-não-foi-implementado)
 4. [Como Configurar e Rodar](#4-como-configurar-e-rodar)
 
 ---
@@ -13,8 +13,6 @@
 
 O **Viatio** é um assistente financeiro mobile focado em viajantes, intercambistas e nômades digitais. Seu principal diferencial é a gestão inteligente do Custo Médio (VET - Valor Efetivo Total).
 A ideia central é simples: você registra seus aportes de moeda estrangeira (ex: comprou EUR com BRL) e o app calcula seu custo médio. Quando você cadastra uma despesa na viagem, o app converte automaticamente o valor para Reais usando o _seu_ VET consolidado, e não a cotação comercial do dia, mostrando o impacto real no bolso.
-
-![a](front-viatio\viatio (1).png)
 
 ## 2. Arquitetura e Fluxo (Offline-First, Flutter + Spring Boot)
 
@@ -28,7 +26,68 @@ O ecossistema é dividido em um app mobile (Flutter) e uma API REST (Java Spring
 - **Backend (Spring Boot + PostgreSQL):** A nuvem serve como a fonte da verdade e backup central. Ela valida os cálculos financeiros de VET e sincroniza os aparelhos de forma centralizada.
 - **Autenticação (JWT):** O login consome a API para validar a conta, e o app guarda o token para assinar todas as tentativas futuras de sincronização.
 
-## 3. O que (ainda) não foi implementado e por quê
+### 2.1. Estrutura de pastas
+```
+lib/
+ |-- screens/ 
+ |-- widgets/ 
+ |-- core/ 
+       |-- api/
+       |-- authentication
+       |-- database
+       |-- dao
+       |-- models
+       |-- repositories
+       |-- providers
+       |-- sync
+       |-- theme
+       |-- constants
+       |-- utils
+
+```
+- lib/screens --> as telas/páginas
+- lib/widgets --> componentes visuais menores e reutilizáveis (botão, menu)
+- lib/core --> lógica e funcionamento
+- lib/core/api --> requisições HTTP para o servidor
+- lib/core/authenticartion --> estado de login, controle de token e sessão
+- lib/core/database --> configura o banco de dados interno do celular (sqlite), cria as tabelas
+- lib/core/dao --> queries do banco de dados para interagir com o sqlite, cada tabela tem seu DAO
+- lib/core/models --> classes, transformam os objetos do banco de dados em objetos que o Dart entende
+- lib/core/repositories --> decide se vai buscar o dado na API online ou no banco de dados local do celular
+- lib/core/providers --> gerencia o estado do app, mantém os dados carregados na memória do celular enquanto o usuário usa o app e notifica a tela para atualizar quando um dado muda (ex: adiciona novo gasto)
+- lib/core/sync --> lógica do offline-first, tudo que for feito sem internet vai ser enviado ao servidor quando tiver conexão
+- lib/core/theme --> cores, fontes e estilos globais
+- lib/core/constants e /utils --> constantes globais (ex: URLs de API) e funções gerais (ex: formatador de data)
+
+
+### 2.2. Offline first e sincronização
+**offline-first**
+- quando clica em salvar, o app grava o novo dado no banco de dados local do celular (sqlite) e atualiza a tela lendo esse banco
+- ao mesmo tempo, o app tenta enviar essa atualização para o servidor (postgres)
+
+**status de sincronização**
+
+- cada tabela do banco de dados possui um campo `was_synced`(true ou false)
+- ao criar algo offline, o dado é salvo localmente com `was_synced = false`
+- quando tiver internet, o celular envia o dado para a nuvem e atualiza o registro para `was_synced = true`
+
+**fluxo de sincronização**
+- executada pelo SyncService
+- *enviar* - o app faz uma busca no banco local de tudo que tem `was_synced = false` e envia essa lista de dados para a API do servidor por requisições HTTP - se der certo o status muda para true, se falhar (ex: celular no modo avião) continua false
+- *receber* - o app pede ao servidor os dados alterados na nuvem desde a última sincronização, e salva esses dados no banco local, assim alterações feitas em outros dispositivos aparecem
+
+*quando é sincronizado*
+- abertura do app (initSession)
+- mudança de conexão ou ações do usuário (ex: cadastrar um gasto estando online)
+- puxar para atualizar (arrasta a tela para baixo para atualizar manualmente)
+
+### 2.3. Cálculo do VET do dia selecionado
+- pega a data selecionada no calendário do gasto e busca no banco de dados (sqlite) compras daquela moeda apenas até essa data (<=)
+- calcula a média: reais gastos ate a data / total da moeda adquirido até a data
+- o VET calculado é gravado no registro do gasto do banco local e não muda
+
+
+## 3. O que (ainda) não foi implementado
 
 Por se tratar de um **MVP** (Produto Mínimo Viável), o foco do desenvolvimento foi garantir a solidez das regras financeiras off/on-line. Algumas features de apoio não entraram:
 
@@ -42,7 +101,7 @@ Por se tratar de um **MVP** (Produto Mínimo Viável), o foco do desenvolvimento
 
 - Flutter SDK devidamente instalado.
 - Backend rodando localmente (porta `8081`).
-- **Atenção ao IP:** Se for rodar no celular físico ou emulador Android, a URL base da API no código Flutter **não pode** ser `localhost` (pois o localhost do celular aponta para ele mesmo). Você precisará usar o IPv4 da sua máquina na rede Wi-Fi (ex: `http://192.168.1.x:8081`).
+- **IP:** Se for rodar no celular físico ou emulador Android, a URL base da API no código Flutter não pode ser `localhost` (pois o localhost do celular aponta para ele mesmo). Você precisará usar o IPv4 da sua máquina na rede Wi-Fi (ex: `http://192.168.1.x:8081`).
 
 ### Rodando no Navegador (Web/Chrome)
 
@@ -65,8 +124,6 @@ flutter run
 ```
 
 ### Gerando o APK (para instalação direta)
-
-Para gerar o arquivo APK de produção e instalar diretamente no dispositivo Android, execute o seguinte comando na raiz do projeto (usando o IP do pc):
 
 ```bash
 flutter build apk --release -t lib/main.dart --dart-define=API_URL=http://192.168.0.000:8081
