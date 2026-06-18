@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -57,10 +58,10 @@ class ApiClient {
     };
   }
 
-  /// executa uma requisição HTTP capturando erros de conexão (SocketException) e erros do servidor (500+ ou 401/403)
-  static Future<http.Response> _executeRequest(Future<http.Response> Function() request) async {
+  /// executa uma requisição HTTP capturando erros de conexão, timeout e erros do servidor
+  static Future<http.Response> _executeRequest(Future<http.Response> Function() request, {Duration timeout = const Duration(seconds: 5)}) async {
     try {
-      final response = await request();
+      final response = await request().timeout(timeout);
       // erro interno no servidor
       if (response.statusCode >= 500) {
         _showGlobalError("Servidor indisponível no momento. Operando offline");
@@ -73,6 +74,14 @@ class ApiClient {
         throw Exception("Unauthorized ${response.statusCode}");
       }
       return response;
+    } on TimeoutException catch (_) {
+      // demorou demais para responder (possivelmente cold start no servidor)
+      if (timeout.inSeconds > 10) {
+        _showGlobalError("Servidor demorou muito para responder (Timeout).");
+      } else {
+        _showGlobalError("Servidor offline/dormindo. Operando offline");
+      }
+      throw Exception("TimeoutException");
     } on SocketException catch (_) {
       // dispositivo sem internet (rede inacessível)
       _showGlobalError("Sem conexão. Operando em modo offline");
@@ -83,34 +92,34 @@ class ApiClient {
   }
 
   /// envia requisição HTTP do tipo GET
-  static Future<http.Response> get(String endpoint) async {
+  static Future<http.Response> get(String endpoint, {Duration timeout = const Duration(seconds: 5)}) async {
     final headers = await _getHeaders();
-    return _executeRequest(() => http.get(Uri.parse('$_effectiveBaseUrl$endpoint'), headers: headers));
+    return _executeRequest(() => http.get(Uri.parse('$_effectiveBaseUrl$endpoint'), headers: headers), timeout: timeout);
   }
 
   /// envia requisição HTTP do tipo POST (criação de recurso)
-  static Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
+  static Future<http.Response> post(String endpoint, Map<String, dynamic> body, {Duration timeout = const Duration(seconds: 5)}) async {
     final headers = await _getHeaders();
     return _executeRequest(() => http.post(
       Uri.parse('$_effectiveBaseUrl$endpoint'),
       headers: headers,
       body: jsonEncode(body),
-    ));
+    ), timeout: timeout);
   }
 
   /// envia requisição HTTP do tipo PUT (atualização completa)
-  static Future<http.Response> put(String endpoint, Map<String, dynamic> body) async {
+  static Future<http.Response> put(String endpoint, Map<String, dynamic> body, {Duration timeout = const Duration(seconds: 5)}) async {
     final headers = await _getHeaders();
     return _executeRequest(() => http.put(
       Uri.parse('$_effectiveBaseUrl$endpoint'),
       headers: headers,
       body: jsonEncode(body),
-    ));
+    ), timeout: timeout);
   }
 
   /// envia requisição HTTP do tipo DELETE (remoção de recurso)
-  static Future<http.Response> delete(String endpoint) async {
+  static Future<http.Response> delete(String endpoint, {Duration timeout = const Duration(seconds: 5)}) async {
     final headers = await _getHeaders();
-    return _executeRequest(() => http.delete(Uri.parse('$_effectiveBaseUrl$endpoint'), headers: headers));
+    return _executeRequest(() => http.delete(Uri.parse('$_effectiveBaseUrl$endpoint'), headers: headers), timeout: timeout);
   }
 }

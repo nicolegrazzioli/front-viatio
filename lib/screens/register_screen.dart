@@ -26,15 +26,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  bool _isLoading = false;
+
   // valida o formulário de cadastro de usuário e envia os dados para registro na API
   void _register() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
       final newUser = User(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
       final success = await AuthService().register(newUser);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       if (success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -206,10 +216,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         backgroundColor: AppColors.bottomGreen,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
-                      onPressed: _register,
-                      child: const Text("Criar conta", style: TextStyle(color: Colors.white, fontSize: 18)),
+                      onPressed: _isLoading ? null : _register,
+                      child: _isLoading 
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text("Criar conta", style: TextStyle(color: Colors.white, fontSize: 18)),
                     ),
                   ),
+                  if (_isLoading)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Center(
+                        child: Text(
+                          "Acordando servidor na nuvem (pode levar 2 minutos)...",
+                          style: TextStyle(color: Colors.white54, fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
                   
                   const SizedBox(height: 60),
                   const Center(

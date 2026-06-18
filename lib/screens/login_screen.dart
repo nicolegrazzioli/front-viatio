@@ -198,6 +198,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         : const Text("Entrar", style: TextStyle(color: Colors.white, fontSize: 18)),
                     ),
                   ),
+                  if (isLoading)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Center(
+                        child: Text(
+                          "Acordando servidor na nuvem (pode levar 2 minutos)...",
+                          style: TextStyle(color: Colors.white54, fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
                   
                   const SizedBox(height: 60),
                   const Center(

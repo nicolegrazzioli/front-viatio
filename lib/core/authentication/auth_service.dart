@@ -26,7 +26,7 @@ class AuthService {
         'name': user.name,
         'email': user.email,
         'password': user.password,
-      });
+      }, timeout: const Duration(seconds: 120));
       
       return response.statusCode == 200;
     } catch (e) {
@@ -41,7 +41,7 @@ class AuthService {
       final response = await ApiClient.post('/auth/login', {
         'email': email,
         'password': password,
-      });
+      }, timeout: const Duration(seconds: 120));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
