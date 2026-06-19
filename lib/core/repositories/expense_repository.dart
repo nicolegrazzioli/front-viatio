@@ -84,6 +84,8 @@ class ExpenseRepository {
   Future<List<Expense>> getExpensesByTrip(String tripId, {bool fetchApi = true}) async {
     if (fetchApi) {
       try {
+        await syncUnsyncedExpenses(); // PUSH: Empurra as ações offline pendentes antes de puxar novidades
+        
         final response = await ApiClient.get('/expenses/trip/$tripId');
         if (response.statusCode == 200) {
           final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
