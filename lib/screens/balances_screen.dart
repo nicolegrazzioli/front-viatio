@@ -376,7 +376,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
                       style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.normal),
                     ),
                     const SizedBox(height: 24),
-                    // Carrossel de Moedas Infinito
+                    // carrossel de moedas
             if (wallets == null || wallets.isEmpty)
               const SizedBox(
                 height: 160,
@@ -393,7 +393,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
                 height: 160,
                 child: Center(
                   child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8, // Largura mais centralizada para 1 item
+                    width: MediaQuery.of(context).size.width * 0.8, 
                     child: _buildCurrencyCard(
                       _getCurrencyCode(wallets[0].currency), 
                       NumericHelpers.formatCurrency(wallets[0].balance), 
@@ -419,7 +419,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
                         final color = _getCurrencyColor(wallet.currency);
                         final converted = wallet.balance * wallet.averageVet;
                         return Container(
-                          width: MediaQuery.of(context).size.width * 0.45, // Ocupa metade da tela para ter 2 cards
+                          width: MediaQuery.of(context).size.width * 0.45, // ocupa metade da tela p ter 2 cards
                           margin: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: _buildCurrencyCard(
                             _getCurrencyCode(wallet.currency), 
@@ -461,7 +461,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
             
             const SizedBox(height: 32),
             
-            // Barra de Busca e Filtros
+            // barra de busca e filtros
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: SearchFilterBar(
@@ -483,7 +483,7 @@ class _BalancesScreenState extends State<BalancesScreen> {
             
             const SizedBox(height: 24),
             
-            // Lista de Compras de Moeda
+            // lista de compras de moeda
             sortedTransactions.isEmpty
               ? const Padding(padding: EdgeInsets.only(top: 40), child: Center(child: Text("Nenhuma compra encontrada.", style: TextStyle(color: Colors.white54))))
               : ListView.builder(

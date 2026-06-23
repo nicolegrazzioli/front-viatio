@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// paleta de cores padrão adotada no design system do aplicativo
+/// paleta de cores padrão do design system do aplicativo
 class AppColors {
   static const Color darkBackground = Color(0xFF0F172A);
   static const Color moneyGreen = Color(0xFF10B981);
@@ -9,7 +9,7 @@ class AppColors {
   static const Color offWhite = Color(0xFFF5F5F5);
   static const Color silverBorder = Color(0xFF475569);
   
-  // cores adicionais baseadas no protótipo do design
+  // cores adicionais 
   static const Color cardBackground = Color(0xFF1E293B);
   static const Color textSecondary = Color(0xFF94A3B8);
   static const Color dollarColor = Color(0xFF85BB65);

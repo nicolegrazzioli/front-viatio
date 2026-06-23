@@ -40,7 +40,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 70), // Espaço no meio para o "+" flutuante
+            const SizedBox(width: 70), // espaço no meio para o "+" flutuante
             Expanded(
               child: InkWell(
                 onTap: () => onTap(1),
@@ -50,7 +50,6 @@ class CustomBottomNavBar extends StatelessWidget {
                     Icon(
                       currentIndex == 1 ? Icons.account_balance_wallet : Icons.account_balance_wallet_outlined,
                       size: 28,
-                      // ignore: deprecated_member_use
                       color: currentIndex == 1 ? AppColors.offWhite : AppColors.offWhite.withOpacity(0.6),
                     ),
                   ],

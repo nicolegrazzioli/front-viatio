@@ -1,4 +1,4 @@
-/// conjunto de funções auxiliares para manipulação, parse e formatação de valores numéricos e moedas
+/// funções auxiliares para manipulação, parse e formatação de valores numéricos e moedas
 class NumericHelpers {
   /// converte uma string contendo valores decimais (com ponto ou vírgula) em double
   static double parseAmount(String text) {

@@ -79,7 +79,7 @@ class CurrencyTransactionRepository {
   Future<List<CurrencyTransaction>> getTransactionsByUser(String userId, {bool fetchApi = true}) async {
     if (fetchApi) {
       try {
-        await syncUnsyncedTransactions(); // PUSH: Empurra as ações offline pendentes antes de puxar novidades
+        await syncUnsyncedTransactions(); // envia oq foi modificado offline pendente antes de puxar novidades
         
         final response = await ApiClient.get('/currency-transactions');
         if (response.statusCode == 200) {

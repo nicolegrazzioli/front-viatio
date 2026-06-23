@@ -380,7 +380,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
               ),
             const SizedBox(height: 24),
 
-            // Custo Médio e Câmbio
+            // custo médio e câmbio
             Row(
               children: [
                 Expanded(
@@ -432,7 +432,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
             ),
             const SizedBox(height: 32),
 
-            // Categorias
+            // categorias
             const Text(
               "Categoria",
               style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w300),
@@ -480,7 +480,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
             const SizedBox(height: 24),
 
 
-            // Botão Salvar
+            // botão salvar
             Center(
               child: SizedBox(
                 width: 242,

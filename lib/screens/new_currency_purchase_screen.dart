@@ -166,7 +166,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             
-            // Valor e Moeda
+            // valor e moeda
             Row(
               children: [
                 Expanded(
@@ -211,7 +211,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Valor pago em reais
+            // valor pago em reais
             _buildTextField(
               hint: "Valor pago em reais", 
               controller: _totalBRLController, 
@@ -219,7 +219,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
             ),
             const SizedBox(height: 12),
             
-            // Texto do VET
+            // VET
             Align(
               alignment: Alignment.centerRight,
               child: Text(
@@ -229,7 +229,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Origem
+            // origem
             Container(
               height: 45,
               decoration: BoxDecoration(
@@ -258,7 +258,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Data
+            // data
             Container(
               height: 45,
               decoration: BoxDecoration(
@@ -306,7 +306,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
             
 
 
-            // Botão Salvar
+            // botão salvar
             Center(
               child: SizedBox(
                 width: 242,
@@ -352,7 +352,7 @@ class _NewCurrencyPurchaseScreenState extends State<NewCurrencyPurchaseScreen> {
                     
                     final user = authProvider.currentUser;
                     if (user != null) {
-                      // Recarrega as viagens para garantir que o efeito cascata do VET seja refletido na UI
+                      // recarrega as viagens 
                       await context.read<TripProvider>().loadTrips(user.id!, fetchApi: false);
                     }
                     

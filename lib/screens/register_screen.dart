@@ -53,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context); // Volta para a tela de login
+          Navigator.pop(context); // volta para a tela de login
         }
       } else {
         if (mounted) {
@@ -107,7 +107,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 40),
                   
-                  // Nome input
+                  // nome input
                   TextFormField(
                     controller: _nameController,
                     style: const TextStyle(color: Colors.white),
@@ -140,7 +140,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // E-mail input
+                  // email input
                   TextFormField(
                     controller: _emailController,
                     style: const TextStyle(color: Colors.white),
@@ -173,7 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // Senha input
+                  // senha input
                   TextFormField(
                     controller: _passwordController,
                     obscureText: true,

@@ -1,4 +1,4 @@
-/// conjunto de funções auxiliares para manipulação, conversão e formatação de datas
+/// funções auxiliares para manipulação, conversão e formatação de datas
 class DateHelpers {
   /// realiza a conversão segura de múltiplos formatos de data dinâmicos para DateTime
   static DateTime? parseDate(dynamic dateData) {

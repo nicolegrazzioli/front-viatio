@@ -16,8 +16,7 @@ import '../core/constants/app_categories.dart';
 import '../core/utils/numeric_helpers.dart';
 import '../core/utils/date_helpers.dart';
 
-// --- MOCK API E MODELOS ---
-// modelos de informações que virão do back-endvia JSON
+// modelos de informações que virão do backvia JSON
 
 class Category {
   final String name;
@@ -201,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
       tripProvider.tripAmounts,
     );
 
-    // Fixa a viagem "Dia a Dia" sempre no topo da lista - gastos de moeda fora de viagens especificas, para atualizar o saldo
+    // fixa a viagem "Dia a Dia" sempre no topo da lista - gastos de moeda fora de viagens especificas, para atualizar o saldo
     final diaADiaIndex = sortedTrips.indexWhere(
       (t) => t.title.toLowerCase() == 'dia a dia',
     );
@@ -222,18 +221,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 controller: _scrollController,
                 child: Column(
                   children: [
-                    // --- HEADER ---
+
+                    // header
                     Padding(
                       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                       child: Column(
                         children: [
-                          // Logo Viatio e Logout
+                          // logo Viatio e logout
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const SizedBox(
                                 width: 48,
-                              ), // Espaço para centralizar o título
+                              ), 
                               Image.asset('assets/img/logo.png', height: 32),
                               IconButton(
                                 icon: const Icon(
@@ -255,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 32),
 
-                          // Saudação e Saldo
+                          // olá e saldo
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,

@@ -110,8 +110,7 @@ class WalletProvider extends ChangeNotifier {
       await walletRepo.updateWallet(newWallet);
     }
 
-    // 3. atualização dinâmica do VET removida (Caminho B: VET Histórico Congelado)
-    // os gastos agora fixam o VET da data em que ocorreram e não mudam retroativamente
+    // 3. os gastos fixam o VET da data em que ocorreram 
   }
 
   /// insere uma nova compra de moeda, recalcula o saldo da carteira e atualiza o estado local

@@ -74,7 +74,7 @@ class TripRepository {
   Future<List<Trip>> getTripsByUser(String userId, {bool fetchApi = true}) async {
     if (fetchApi) {
       try {
-        await syncUnsyncedTrips(); // PUSH: Empurra as ações offline pendentes antes de puxar novidades
+        await syncUnsyncedTrips(); // envia as ações offline pendentes antes de puxar novidades
         
         final response = await ApiClient.get('/trips');
         if (response.statusCode == 200) {
@@ -87,7 +87,7 @@ class TripRepository {
             
             final localData = await _dao.getTripById(tripId);
             if (localData != null && localData['is_synced'] == 0) {
-              continue; // Pula atualização para não sobrescrever dados editados/criados offline
+              continue; // pula atualização para não sobrescrever dados editados/criados offline
             }
             
             final trip = Trip(

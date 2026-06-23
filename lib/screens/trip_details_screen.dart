@@ -247,7 +247,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             ),
             const SizedBox(height: 40),
             
-            // Gráfico de Pizza Dinâmico
+            // gráfico de pizza dinâmico
             if (_totalAmount > 0)
               SizedBox(
                 height: 180,
@@ -256,7 +256,6 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                     sectionsSpace: 4,
                     centerSpaceRadius: 0,
                     sections: _categoryTotals.entries.map((entry) {
-                      // Find category color from the mocked categories list in home_screen
                       final cat = categories.firstWhere(
                         (c) => c.name == entry.key, 
                         orElse: () => categories[0]

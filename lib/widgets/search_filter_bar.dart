@@ -52,7 +52,7 @@ class SearchFilterBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
               ],
-              // Botão Ordenar
+              // botão ordenar
               Expanded(
                 child: Container(
                   height: 40,

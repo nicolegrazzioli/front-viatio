@@ -101,7 +101,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Título
+            // título
             TextField(
               controller: _titleController,
               style: const TextStyle(color: Colors.white),
@@ -120,7 +120,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
             ),
             const SizedBox(height: 24),
             
-            // Datas
+            // datas
             Row(
               children: [
                 Expanded(
@@ -140,7 +140,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
             ),
             const SizedBox(height: 16),
             
-            // Grid de Capas
+            // grid de capas
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -187,7 +187,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
             
             const SizedBox(height: 48),
             
-            // Botões
+            // botões
             SizedBox(
               width: double.infinity,
               height: 56,
